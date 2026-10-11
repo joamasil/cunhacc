@@ -1,6 +1,8 @@
+import { initLenis } from './lenis';
 import { initNav } from './nav';
 
 function init(): void {
+  initLenis();
   initNav();
 }
 
