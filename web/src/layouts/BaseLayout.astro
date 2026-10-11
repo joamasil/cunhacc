@@ -1,0 +1,35 @@
+---
+import Seo from '../components/Seo.astro';
+import '../styles/global.css';
+import fontLatin from '@fontsource-variable/42dot-sans/files/42dot-sans-latin-wght-normal.woff2?url';
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  ogImage?: string;
+  bodyClass?: string;
+}
+const { title, description, canonicalPath, ogImage, bodyClass } = Astro.props;
+const namespace = canonicalPath === '/' ? 'home' : canonicalPath.replace(/\//g, '-').replace(/^-/, '');
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preload" href={fontLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <Seo title={title} description={description} canonicalPath={canonicalPath} ogImage={ogImage} />
+  </head>
+  <body class={bodyClass}>
+    <div data-barba="wrapper">
+      <slot name="nav" />
+      <main data-barba="container" data-barba-namespace={namespace}>
+        <slot />
+      </main>
+    </div>
+    <script type="module" src="/src/scripts/main.ts"></script>
+  </body>
+</html>

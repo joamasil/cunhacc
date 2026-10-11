@@ -1,0 +1,57 @@
+@import './tokens.css';
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--body-md-size);
+  line-height: var(--body-md-line-height);
+  letter-spacing: var(--body-md-letter-spacing);
+  font-weight: var(--body-md-weight);
+  color: var(--color-black);
+  background: var(--color-white);
+}
+
+h1 {
+  font-size: var(--h1-size);
+  line-height: var(--h1-line-height);
+  letter-spacing: var(--h1-letter-spacing);
+  font-weight: var(--h1-weight);
+}
+
+h2 {
+  font-size: var(--h2-size);
+  line-height: var(--h2-line-height);
+  letter-spacing: var(--h2-letter-spacing);
+  font-weight: var(--h2-weight);
+}
+
+.project-popup {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  background: var(--color-white);
+  padding: 2rem;
+}
+
+.project-popup[hidden] {
+  display: none;
+}
+
+body.popup-open {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
