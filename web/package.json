@@ -14,5 +14,9 @@
   "dependencies": {
     "@fontsource-variable/42dot-sans": "^5.3.0",
     "astro": "^7.3.8"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^6.0.3"
   }
 }
