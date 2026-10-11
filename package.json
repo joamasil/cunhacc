@@ -1,0 +1,5 @@
+{
+  "name": "cunhacc",
+  "private": true,
+  "workspaces": ["web", "studio"]
+}
