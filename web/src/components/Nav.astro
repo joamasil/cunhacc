@@ -1,0 +1,179 @@
+---
+import { getSiteSettings } from '../lib/content';
+import menuIcon from '../assets/icons/menu.svg?url';
+import closeIcon from '../assets/icons/close.svg?url';
+
+const { navLabels, figmaUrl } = await getSiteSettings();
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const links = [
+  { label: navLabels.work, href: '/' },
+  { label: navLabels.about, href: '/about' },
+  { label: navLabels.figma, href: figmaUrl, external: true },
+  { label: navLabels.pizzaHunts, href: '/pizza-hunts' },
+];
+---
+<nav class="site-nav" data-nav data-open="false" aria-label="Main">
+  <button class="site-nav__toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="nav-menu">
+    Menu
+    <img class="site-nav__icon site-nav__icon--menu" src={menuIcon} width="20" height="20" alt="" />
+    <img class="site-nav__icon site-nav__icon--close" src={closeIcon} width="20" height="20" alt="" />
+  </button>
+  <ul id="nav-menu" class="site-nav__menu" data-nav-menu data-open="false">
+    {links.map((link) => (
+      <li>
+        <a
+          class="site-nav__link"
+          href={link.href}
+          aria-current={!link.external && link.href === path ? 'page' : undefined}
+          target={link.external ? '_blank' : undefined}
+          rel={link.external ? 'noopener noreferrer' : undefined}
+        >
+          {link.label}
+        </a>
+      </li>
+    ))}
+    <li>
+      <button class="site-nav__link" type="button" data-contact-open>{navLabels.contact}</button>
+    </li>
+  </ul>
+</nav>
+
+<style>
+  .site-nav {
+    position: fixed;
+    top: var(--grid-margin);
+    left: var(--grid-margin);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4px;
+    border-radius: 8px;
+    background: rgb(225 225 225 / 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    font-size: var(--body-md-size);
+    font-weight: var(--body-md-weight-semibold);
+    line-height: normal;
+    color: var(--color-black);
+    transition: background-color 0.2s ease;
+  }
+
+  @media (hover: hover) {
+    .site-nav[data-open='false']:hover {
+      background: var(--color-pink);
+    }
+  }
+
+  .site-nav__toggle,
+  .site-nav__link {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .site-nav__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 32px;
+    padding: 6px 12px;
+    border-radius: 4px;
+  }
+
+  .site-nav__icon {
+    display: block;
+  }
+
+  .site-nav__icon--close,
+  .site-nav[data-open='true'] .site-nav__icon--menu {
+    display: none;
+  }
+
+  .site-nav[data-open='true'] .site-nav__icon--close {
+    display: block;
+  }
+
+  .site-nav__menu {
+    display: none;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-nav__link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 6px 24px;
+    white-space: nowrap;
+  }
+
+  .site-nav__link[aria-current='page'] {
+    opacity: 0.5;
+  }
+
+  .site-nav__toggle:focus-visible,
+  .site-nav__link:focus-visible {
+    outline: 2px solid var(--color-black);
+    outline-offset: 2px;
+  }
+
+  /* Mobile open: full-width panel, stacked links, "Menu ×" at the bottom */
+  .site-nav[data-open='true'] {
+    right: var(--grid-margin);
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-md) var(--space-sm);
+  }
+
+  .site-nav[data-open='true'] .site-nav__toggle {
+    order: 1;
+  }
+
+  .site-nav[data-open='true'] .site-nav__menu {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xsm);
+    width: 100%;
+  }
+
+  .site-nav[data-open='true'] .site-nav__link {
+    width: 100%;
+    border-radius: 8px;
+    background: rgb(255 255 255 / 0.24);
+  }
+
+  @media (min-width: 768px) {
+    .site-nav__toggle {
+      min-height: 40px;
+    }
+
+    /* Desktop open: the pill becomes a single row of links */
+    .site-nav[data-open='true'] {
+      right: auto;
+      flex-direction: row;
+      padding: 4px;
+    }
+
+    .site-nav[data-open='true'] .site-nav__toggle {
+      display: none;
+    }
+
+    .site-nav[data-open='true'] .site-nav__menu {
+      flex-direction: row;
+      gap: var(--space-md);
+      width: auto;
+    }
+
+    .site-nav[data-open='true'] .site-nav__link {
+      width: auto;
+      border-radius: 40px;
+      background: none;
+    }
+  }
+</style>

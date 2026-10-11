@@ -39,7 +39,8 @@ export interface About {
 }
 
 export interface SiteSettings {
-  navLabels: { home: string; about: string; fun: string };
+  navLabels: { work: string; about: string; figma: string; pizzaHunts: string; contact: string };
+  figmaUrl: string;
   defaultSeo: { title: string; description: string; ogImage: SanityImage };
   socialLinks: SocialLink[];
 }
