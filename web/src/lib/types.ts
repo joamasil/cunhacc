@@ -31,16 +31,41 @@ export interface SocialLink {
   url: string;
 }
 
+export interface EducationItem {
+  label: string;
+  title: string;
+  institution: string;
+}
+
+export interface ExperienceItem {
+  period: string;
+  role: string;
+  url?: string;
+}
+
+export interface Skill {
+  label: string;
+  icons: SanityImage[];
+}
+
 export interface About {
+  heading: string;
+  intro: string;
   bio: string;
   portrait: SanityImage;
   resumeUrl?: string;
   socialLinks: SocialLink[];
+  education: EducationItem[];
+  experience: ExperienceItem[];
+  skills: Skill[];
 }
 
 export interface SiteSettings {
   navLabels: { work: string; about: string; figma: string; pizzaHunts: string; contact: string };
   figmaUrl: string;
+  contactEmail: string;
+  /** IANA time zone for the live clock on the Contact card, e.g. "Europe/Lisbon". */
+  timeZone: string;
   defaultSeo: { title: string; description: string; ogImage: SanityImage };
   socialLinks: SocialLink[];
 }

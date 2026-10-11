@@ -55,20 +55,22 @@
   --space-xlg: 2.5rem; /* 40px */
   --space-xxlg: 4rem; /* 64px */
 
-  /* Grid — mobile (390 artboard) */
+  /* Grid — mobile (390 artboard). Values from the layout grid on the Figma
+     screen frames, which differ from the styleguide sheet (20px margin). */
   --grid-columns: 4;
   --grid-gutter: 1rem; /* 16px */
-  --grid-margin: 1.25rem; /* 20px */
+  --grid-margin: 1rem; /* 16px */
 }
 
-/* Desktop (1440 artboard). Breakpoint is not specified in Figma. */
-@media (min-width: 768px) {
+/* Desktop (1440 artboard). Breakpoint is not specified in Figma; below 1024px
+   the 12-column layouts get too narrow, so tablets use the mobile layout. */
+@media (min-width: 1024px) {
   :root {
     --h1-size: 5.5rem; /* 88px */
     --h1-letter-spacing: -0.03em;
 
     --grid-columns: 12;
-    --grid-gutter: 1.25rem; /* 20px */
-    --grid-margin: 2.5rem; /* 40px */
+    --grid-gutter: 1.5rem; /* 24px */
+    --grid-margin: 1rem; /* 16px */
   }
 }

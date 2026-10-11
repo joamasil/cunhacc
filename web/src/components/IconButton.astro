@@ -1,0 +1,75 @@
+---
+/** 32px round icon button — Figma "Button" component (Black / White / Outline). */
+interface Props {
+  href: string;
+  label: string;
+  icon: string;
+  variant?: 'black' | 'white' | 'outline';
+  download?: boolean;
+  external?: boolean;
+}
+const { href, label, icon, variant = 'black', download, external } = Astro.props;
+---
+<a
+  class:list={['icon-button', `icon-button--${variant}`]}
+  href={href}
+  aria-label={label}
+  download={download || undefined}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
+>
+  <img src={icon} width="20" height="20" alt="" />
+</a>
+
+<style>
+  .icon-button {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50px;
+    transition: background-color 0.2s ease;
+  }
+
+  .icon-button img {
+    display: block;
+  }
+
+  .icon-button--black {
+    background: var(--color-black);
+  }
+
+  .icon-button--white {
+    background: var(--color-white);
+  }
+
+  .icon-button--outline {
+    border: 1px solid var(--color-black);
+  }
+
+  .icon-button:focus-visible {
+    outline: 2px solid var(--color-black);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    .icon-button--black:hover {
+      background: var(--color-pink);
+    }
+
+    .icon-button--white:hover {
+      background: var(--color-gray-200);
+    }
+
+    .icon-button--outline:hover {
+      background: var(--color-black);
+    }
+
+    /* Figma swaps to a light icon on the filled hover state */
+    .icon-button--outline:hover img {
+      filter: invert(1);
+    }
+  }
+</style>

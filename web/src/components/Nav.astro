@@ -41,8 +41,9 @@ const links = [
 <style>
   .site-nav {
     position: fixed;
-    top: var(--grid-margin);
-    left: var(--grid-margin);
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 100;
     display: flex;
     flex-direction: column;
@@ -124,9 +125,11 @@ const links = [
     outline-offset: 2px;
   }
 
-  /* Mobile open: full-width panel, stacked links, "Menu ×" at the bottom */
+  /* Mobile open: full-width panel growing upward, stacked links, "Menu ×" at the bottom */
   .site-nav[data-open='true'] {
+    left: var(--grid-margin);
     right: var(--grid-margin);
+    transform: none;
     gap: var(--space-md);
     padding: var(--space-md) var(--space-md) var(--space-sm);
   }
@@ -148,14 +151,20 @@ const links = [
     background: rgb(255 255 255 / 0.24);
   }
 
-  @media (min-width: 768px) {
+  @media (min-width: 1024px) {
+    .site-nav {
+      bottom: var(--space-xlg);
+    }
+
     .site-nav__toggle {
       min-height: 40px;
     }
 
-    /* Desktop open: the pill becomes a single row of links */
+    /* Desktop open: the pill becomes a single row of links, still centered */
     .site-nav[data-open='true'] {
+      left: 50%;
       right: auto;
+      transform: translateX(-50%);
       flex-direction: row;
       padding: 4px;
     }

@@ -20,6 +20,19 @@ body {
   background: var(--color-white);
 }
 
+body.theme-blue {
+  color: var(--color-white);
+  background: var(--color-blue);
+}
+
+/* Page grid: 4 columns on mobile, 12 on desktop (see tokens.css) */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  column-gap: var(--grid-gutter);
+  padding-inline: var(--grid-margin);
+}
+
 h1 {
   font-size: var(--h1-size);
   line-height: var(--h1-line-height);

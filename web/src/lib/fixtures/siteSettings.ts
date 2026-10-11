@@ -9,6 +9,8 @@ export const siteSettings: SiteSettings = {
     contact: 'Contact',
   },
   figmaUrl: 'https://www.figma.com/',
+  contactEmail: 'hello@example.com',
+  timeZone: 'Europe/Lisbon',
   defaultSeo: {
     title: 'Joana Cunha — Portfolio',
     description: 'Design & development portfolio.',

@@ -1,8 +1,326 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Nav from '../components/Nav.astro';
+import ContactCard from '../components/ContactCard.astro';
+import DownloadCard from '../components/DownloadCard.astro';
+import { getAbout, getSiteSettings } from '../lib/content';
+
+const about = await getAbout();
+const siteSettings = await getSiteSettings();
 ---
-<BaseLayout title="About — Joana Cunha" description="About Joana Cunha." canonicalPath="/about">
+<BaseLayout
+  title={`About — ${siteSettings.defaultSeo.title}`}
+  description={siteSettings.defaultSeo.description}
+  canonicalPath="/about"
+  bodyClass="theme-blue"
+>
   <Nav slot="nav" />
-  <h1>About (coming soon)</h1>
+  <article class="about grid">
+    <img
+      class="about__portrait"
+      src={about.portrait.url}
+      alt={about.portrait.alt}
+      width={about.portrait.width}
+      height={about.portrait.height}
+    />
+
+    <div class="about__intro">
+      <header class="about__header">
+        <h1 class="about__heading">{about.heading}</h1>
+        <p class="about__lede">{about.intro}</p>
+      </header>
+      <div class="about__bio" set:html={about.bio} />
+    </div>
+
+    <div class="about__cards">
+      <ContactCard
+        email={siteSettings.contactEmail}
+        timeZone={siteSettings.timeZone}
+        label={siteSettings.navLabels.contact}
+      />
+      {about.resumeUrl && <DownloadCard href={about.resumeUrl} />}
+    </div>
+
+    <div class="about__details">
+      <section class="about__section">
+        <h2 class="about__section-title">Education</h2>
+        <ul class="about__rows">
+          {about.education.map((item) => (
+            <li class="about__row">
+              <span class="about__label">{item.label}</span>
+              <p class="about__value">
+                <strong>{item.title}</strong><br />
+                {item.institution}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="about__section">
+        <h2 class="about__section-title">Experience</h2>
+        <ul class="about__rows about__rows--divided">
+          {about.experience.map((item) => (
+            <li class="about__row">
+              <span class="about__label">{item.period}</span>
+              <p class="about__value">
+                {item.url ? (
+                  <a href={item.url} target="_blank" rel="noopener noreferrer">{item.role}↗</a>
+                ) : (
+                  item.role
+                )}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="about__section about__section--inline">
+        <h2 class="about__section-title">Skills</h2>
+        <ul class="about__tags">
+          {about.skills.map((skill) => (
+            <li class="about__tag">
+              {skill.label}
+              {skill.icons.map((icon) => (
+                <img src={icon.url} alt={icon.alt} width={icon.width} height={icon.height} />
+              ))}
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  </article>
 </BaseLayout>
+
+<style>
+  /* Mobile (4-column grid): everything spans the full width, stacked. */
+  .about {
+    row-gap: 0;
+    padding-block: var(--grid-margin) 120px; /* bottom clears the fixed nav */
+  }
+
+  .about__portrait,
+  .about__cards,
+  .about__intro,
+  .about__details {
+    grid-column: 1 / -1;
+  }
+
+  .about__portrait {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 334 / 333.5;
+    object-fit: cover;
+    border-radius: 14px;
+  }
+
+  .about__cards {
+    order: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xsm);
+    margin-top: var(--space-md);
+  }
+
+  .about__intro {
+    order: 2;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    margin-top: var(--space-xxlg);
+  }
+
+  .about__details {
+    order: 3;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xlg);
+    margin-top: var(--space-xxlg);
+  }
+
+  .about__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .about__heading {
+    margin: 0;
+    font-size: var(--h2-size);
+    line-height: var(--h2-line-height);
+    letter-spacing: var(--h2-letter-spacing);
+    font-weight: var(--h2-weight);
+  }
+
+  .about__lede,
+  .about__label {
+    color: rgb(255 255 255 / 0.65);
+  }
+
+  .about__lede,
+  .about__bio :global(p) {
+    margin: 0;
+  }
+
+  .about__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .about__section-title {
+    margin: 0;
+    font-size: var(--body-md-size);
+    line-height: var(--body-md-line-height);
+    letter-spacing: var(--body-md-letter-spacing);
+    font-weight: var(--body-md-weight-semibold);
+  }
+
+  .about__rows,
+  .about__tags {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .about__row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .about__rows--divided .about__row + .about__row {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-gray-200);
+  }
+
+  .about__label {
+    font-size: var(--body-sm-size);
+    line-height: var(--body-sm-line-height);
+  }
+
+  .about__value {
+    margin: 0;
+  }
+
+  .about__value strong {
+    font-weight: var(--body-md-weight-semibold);
+  }
+
+  .about__value a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .about__value a:hover {
+    text-decoration: underline;
+  }
+
+  .about__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xsm);
+  }
+
+  .about__tag {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xsm) 12px;
+    border-radius: 8px;
+    background: var(--color-gray-50);
+    color: var(--color-gray-500);
+    font-size: var(--body-sm-size);
+    line-height: var(--body-sm-line-height);
+  }
+
+  .about__tag img {
+    display: block;
+  }
+
+  /* Desktop (12-column grid) */
+  @media (min-width: 1024px) {
+    .about__cards,
+    .about__intro,
+    .about__details {
+      order: 0;
+      margin-top: 0;
+    }
+
+    .about__portrait {
+      grid-column: 1 / span 3;
+      grid-row: 1;
+      align-self: start;
+    }
+
+    .about__intro {
+      grid-column: 4 / span 4;
+      grid-row: 1;
+    }
+
+    .about__cards {
+      grid-column: 10 / -1;
+      grid-row: 1;
+      align-self: start;
+    }
+
+    .about__details {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      display: grid;
+      grid-template-columns: subgrid;
+      margin-top: var(--space-lg);
+    }
+
+    .about__section,
+    .about__rows,
+    .about__row {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+    }
+
+    /* Subgrids must use the page gutter, not the mobile flex gaps */
+    .about__details,
+    .about__section,
+    .about__rows,
+    .about__row {
+      column-gap: normal;
+    }
+
+    .about__section {
+      row-gap: var(--space-md);
+    }
+
+    .about__section-title,
+    .about__label {
+      grid-column: 1 / span 3;
+    }
+
+    .about__value,
+    .about__tags {
+      grid-column: 4 / -1;
+    }
+
+    .about__row {
+      align-items: baseline;
+    }
+
+    .about__rows--divided .about__row + .about__row {
+      margin-top: var(--space-sm);
+      padding-top: var(--space-sm);
+    }
+
+    /* Skills: title and tags on one row */
+    .about__section--inline {
+      align-items: center;
+    }
+
+    .about__section--inline .about__section-title,
+    .about__section--inline .about__tags {
+      grid-row: 1;
+    }
+  }
+</style>

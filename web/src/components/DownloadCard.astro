@@ -1,0 +1,38 @@
+---
+/** Figma "Popup" component, Type=Download: translucent card with an outline download button. */
+import IconButton from './IconButton.astro';
+import downloadIcon from '../assets/icons/download.svg?url';
+
+interface Props {
+  href: string;
+  label?: string;
+}
+const { href, label = 'Download CV' } = Astro.props;
+---
+<div class="download-card">
+  <p class="download-card__title">{label}</p>
+  <IconButton href={href} label={label} icon={downloadIcon} variant="outline" download />
+</div>
+
+<style>
+  .download-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-sm) var(--space-sm) 12px;
+    border-radius: 8px;
+    background: rgb(255 255 255 / 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    color: var(--color-black);
+  }
+
+  .download-card__title {
+    margin: 0;
+    font-size: var(--body-lg-size);
+    line-height: var(--body-lg-line-height);
+    letter-spacing: var(--body-lg-letter-spacing);
+    font-weight: var(--body-lg-weight);
+  }
+</style>

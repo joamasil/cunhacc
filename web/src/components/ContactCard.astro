@@ -1,0 +1,57 @@
+---
+/** Figma "Popup" component, Type=Contact: pink card with a live local clock and an email button. */
+import IconButton from './IconButton.astro';
+import mailIcon from '../assets/icons/mail.svg?url';
+
+interface Props {
+  email: string;
+  timeZone: string;
+  label?: string;
+}
+const { email, timeZone, label = 'Contact' } = Astro.props;
+---
+<div class="contact-card">
+  <div class="contact-card__row">
+    <p class="contact-card__title">{label}</p>
+    <IconButton href={`mailto:${email}`} label={`Email ${email}`} icon={mailIcon} variant="white" />
+  </div>
+  <p class="contact-card__time" data-clock data-time-zone={timeZone}>&nbsp;</p>
+</div>
+
+<style>
+  .contact-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 79px;
+    padding: var(--space-sm) var(--space-sm) var(--space-sm) 12px;
+    border-radius: 8px;
+    background: var(--color-pink);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    color: var(--color-black);
+  }
+
+  .contact-card__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+  }
+
+  .contact-card__title {
+    margin: 0;
+    font-size: var(--body-lg-size);
+    line-height: var(--body-lg-line-height);
+    letter-spacing: var(--body-lg-letter-spacing);
+    font-weight: var(--body-lg-weight);
+  }
+
+  .contact-card__time {
+    margin: 0;
+    font-size: var(--body-sm-size);
+    line-height: var(--body-sm-line-height);
+    color: rgb(28 27 31 / 0.65);
+    font-variant-numeric: tabular-nums;
+  }
+</style>
