@@ -1,0 +1,74 @@
+/* 42dot Sans, self-hosted variable font (weights 300–800) */
+@import '@fontsource-variable/42dot-sans';
+
+/*
+ * Design tokens — sourced from the Figma styleguide
+ * (file 6XrgU349sTZVEbwF3DbCwW: Text Styles, Spacing, Grid, Color).
+ * Mobile values apply below --bp-desktop; desktop overrides live in the media query.
+ */
+
+:root {
+  /* Color */
+  --color-black: #1c1b1f;
+  --color-gray-500: #646464;
+  --color-gray-200: #cccccc;
+  --color-gray-100: #e1e1e1;
+  --color-gray-50: #f6f6f6;
+  --color-white: #fdfdfd;
+  --color-pink: #ff00c3;
+  --color-blue: #001995;
+
+  /* Typography */
+  --font-sans: '42dot Sans Variable', system-ui, sans-serif;
+
+  --h1-size: 4rem; /* 64px */
+  --h1-line-height: 1.05;
+  --h1-letter-spacing: -0.015em;
+  --h1-weight: 400;
+
+  --h2-size: 2rem; /* 32px */
+  --h2-line-height: 1.1;
+  --h2-letter-spacing: -0.03em;
+  --h2-weight: 600;
+
+  --body-lg-size: 1.125rem; /* 18px */
+  --body-lg-line-height: 1.1;
+  --body-lg-letter-spacing: -0.01em;
+  --body-lg-weight: 400;
+
+  --body-md-size: 1rem; /* 16px */
+  --body-md-line-height: 1.2;
+  --body-md-letter-spacing: 0;
+  --body-md-weight: 400;
+  --body-md-weight-semibold: 600;
+
+  --body-sm-size: 0.875rem; /* 14px */
+  --body-sm-line-height: 1.2;
+  --body-sm-letter-spacing: 0;
+  --body-sm-weight: 400;
+
+  /* Spacing (same on desktop and mobile) */
+  --space-xsm: 0.25rem; /* 4px */
+  --space-sm: 0.5rem; /* 8px */
+  --space-md: 1rem; /* 16px */
+  --space-lg: 1.5rem; /* 24px */
+  --space-xlg: 2.5rem; /* 40px */
+  --space-xxlg: 4rem; /* 64px */
+
+  /* Grid — mobile (390 artboard) */
+  --grid-columns: 4;
+  --grid-gutter: 1rem; /* 16px */
+  --grid-margin: 1.25rem; /* 20px */
+}
+
+/* Desktop (1440 artboard). Breakpoint is not specified in Figma. */
+@media (min-width: 768px) {
+  :root {
+    --h1-size: 5.5rem; /* 88px */
+    --h1-letter-spacing: -0.03em;
+
+    --grid-columns: 12;
+    --grid-gutter: 1.25rem; /* 20px */
+    --grid-margin: 2.5rem; /* 40px */
+  }
+}
