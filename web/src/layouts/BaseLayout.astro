@@ -9,9 +9,12 @@ interface Props {
   canonicalPath: string;
   ogImage?: string;
   bodyClass?: string;
+  /** Barba namespace; transitions are chosen by it (see scripts/transitions.ts). Defaults to one derived from the path. */
+  namespace?: string;
 }
 const { title, description, canonicalPath, ogImage, bodyClass } = Astro.props;
-const namespace = canonicalPath === '/' ? 'home' : canonicalPath.replace(/\//g, '-').replace(/^-/, '');
+const namespace =
+  Astro.props.namespace ?? (canonicalPath === '/' ? 'home' : canonicalPath.replace(/\//g, '-').replace(/^-/, ''));
 ---
 <html lang="en">
   <head>
@@ -30,6 +33,6 @@ const namespace = canonicalPath === '/' ? 'home' : canonicalPath.replace(/\//g, 
         <slot />
       </main>
     </div>
-    <script type="module" src="/src/scripts/main.ts"></script>
+    <script src="../scripts/main.ts"></script>
   </body>
 </html>

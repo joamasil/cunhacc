@@ -47,20 +47,22 @@ h2 {
   font-weight: var(--h2-weight);
 }
 
-.project-popup {
-  position: fixed;
-  inset: 0;
-  overflow-y: auto;
-  background: var(--color-white);
-  padding: 2rem;
+/* Work pages (home slider + project panel) share a backdrop so the
+   expand/collapse transitions never flash a different page color. */
+body.theme-work {
+  background: var(--surface-backdrop);
 }
 
-.project-popup[hidden] {
-  display: none;
-}
-
-body.popup-open {
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
   overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

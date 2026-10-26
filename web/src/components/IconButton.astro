@@ -1,22 +1,26 @@
 ---
-/** 32px round icon button — Figma "Button" component (Black / White / Outline). */
-interface Props {
+import type { HTMLAttributes } from 'astro/types';
+
+/** Round icon button — Figma "Button" component (Black / White / Outline), 32px or 40px ("CTA"). */
+interface Props extends Omit<HTMLAttributes<'a'>, 'href'> {
   href: string;
   label: string;
   icon: string;
   variant?: 'black' | 'white' | 'outline';
+  size?: 'md' | 'lg';
   download?: boolean;
   external?: boolean;
 }
-const { href, label, icon, variant = 'black', download, external } = Astro.props;
+const { href, label, icon, variant = 'black', size = 'md', download, external, class: className, ...rest } = Astro.props;
 ---
 <a
-  class:list={['icon-button', `icon-button--${variant}`]}
+  class:list={['icon-button', `icon-button--${variant}`, `icon-button--${size}`, className]}
   href={href}
   aria-label={label}
   download={download || undefined}
   target={external ? '_blank' : undefined}
   rel={external ? 'noopener noreferrer' : undefined}
+  {...rest}
 >
   <img src={icon} width="20" height="20" alt="" />
 </a>
@@ -27,10 +31,18 @@ const { href, label, icon, variant = 'black', download, external } = Astro.props
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50px;
-    transition: background-color 0.2s ease;
+    width: var(--icon-button-size);
+    height: var(--icon-button-size);
+    border-radius: var(--radius-round);
+    transition: background-color var(--motion-fast) ease;
+  }
+
+  .icon-button--md {
+    --icon-button-size: 32px;
+  }
+
+  .icon-button--lg {
+    --icon-button-size: 40px;
   }
 
   .icon-button img {

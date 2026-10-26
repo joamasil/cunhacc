@@ -5,16 +5,41 @@ export interface SanityImage {
   height: number;
 }
 
+/** How a media item fills its frame: edge to edge, or whole and centered. */
+export type MediaFit = 'cover' | 'contain';
+
+export type ProjectMedia =
+  | (SanityImage & { type: 'image'; fit?: MediaFit })
+  | { type: 'video'; url: string; poster?: string; alt: string; width: number; height: number; fit?: MediaFit };
+
+export interface InfoRow {
+  label: string;
+  /** Line breaks ("\n") render as separate lines. */
+  value: string;
+  href?: string;
+}
+
+/** A titled list of rows on the project page — "Credits", "Client", etc. */
+export interface InfoBlock {
+  title: string;
+  rows: InfoRow[];
+}
+
 export interface Project {
   slug: string;
   title: string;
-  coverImage: SanityImage;
-  gallery: SanityImage[];
+  industry: string;
   description: string;
-  year: number;
-  role: string;
   tags: string[];
-  externalLink?: string;
+  /** Brand color shown behind the cover and thumbnail. */
+  color: string;
+  /** Full-screen asset on the home slider. */
+  cover: ProjectMedia;
+  /** Small image in the bottom project strip. */
+  thumbnail: SanityImage;
+  /** Media column on the project page. */
+  gallery: ProjectMedia[];
+  infoBlocks: InfoBlock[];
   order: number;
 }
 

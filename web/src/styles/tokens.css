@@ -18,6 +18,36 @@
   --color-pink: #ff00c3;
   --color-blue: #001995;
 
+  /* Surfaces — frosted pills/cards (nav, project info card) */
+  --surface-glass: rgb(225 225 225 / 0.65); /* gray-100 @ 65% */
+  --surface-glass-blur: 20px;
+  --surface-solid: var(--color-white);
+  --surface-backdrop: var(--color-gray-200); /* page behind the project panel */
+  --thumb-dim: rgb(0 0 0 / 0.2); /* overlay on inactive project thumbnails */
+
+  /* Radii */
+  --radius-xs: 3.2px; /* project thumbnails */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-round: 50px;
+
+  /* Motion — JS reads these too (src/scripts/motion.ts), so tune here */
+  --motion-fast: 200ms;
+  --motion-base: 400ms;
+  --motion-slow: 800ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* expo out */
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1); /* quart in-out */
+  --slide-duration: 3000ms; /* home slider autoplay; the thumbnail timer fills over this */
+
+  /* Layering */
+  --z-panel: 50;
+  --z-card: 60;
+  --z-nav: 100;
+
+  /* Bottom nav bar geometry (the project panel sits above it) */
+  --nav-bottom: 2rem; /* 32px */
+  --nav-height: 2.5rem; /* 40px */
+
   /* Typography */
   --font-sans: '42dot Sans Variable', system-ui, sans-serif;
 
@@ -35,6 +65,7 @@
   --body-lg-line-height: 1.1;
   --body-lg-letter-spacing: -0.01em;
   --body-lg-weight: 400;
+  --body-lg-weight-medium: 500;
 
   --body-md-size: 1rem; /* 16px */
   --body-md-line-height: 1.2;
@@ -72,5 +103,16 @@
     --grid-columns: 12;
     --grid-gutter: 1.5rem; /* 24px */
     --grid-margin: 1rem; /* 16px */
+
+    --nav-bottom: var(--space-xlg); /* 40px */
+    --nav-height: 3rem; /* 48px */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 1ms;
+    --motion-base: 1ms;
+    --motion-slow: 1ms;
   }
 }

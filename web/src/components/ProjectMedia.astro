@@ -1,0 +1,59 @@
+---
+import type { ProjectMedia } from '../lib/types';
+
+/**
+ * Image or video that fills its parent. Videos autoplay muted and looped;
+ * the slider pauses the ones that aren't on screen.
+ */
+interface Props {
+  media: ProjectMedia;
+  /** Eager-load (first slide / above the fold). */
+  priority?: boolean;
+  class?: string;
+}
+const { media, priority = false, class: className } = Astro.props;
+const fit = media.fit ?? 'cover';
+---
+{media.type === 'video' ? (
+  <video
+    class:list={['project-media', `project-media--${fit}`, className]}
+    src={media.url}
+    poster={media.poster}
+    width={media.width}
+    height={media.height}
+    aria-label={media.alt}
+    muted
+    loop
+    playsinline
+    autoplay={priority}
+    preload={priority ? 'auto' : 'metadata'}
+    data-media-video
+  />
+) : (
+  <img
+    class:list={['project-media', `project-media--${fit}`, className]}
+    src={media.url}
+    alt={media.alt}
+    width={media.width}
+    height={media.height}
+    loading={priority ? 'eager' : 'lazy'}
+    decoding="async"
+  />
+)}
+
+<style>
+  .project-media {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .project-media--cover {
+    object-fit: cover;
+  }
+
+  .project-media--contain {
+    object-fit: contain;
+    padding: var(--space-xxlg);
+  }
+</style>

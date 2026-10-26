@@ -1,10 +1,18 @@
 ---
-import { getSiteSettings } from '../lib/content';
+import { getProjects, getSiteSettings } from '../lib/content';
 import menuIcon from '../assets/icons/menu.svg?url';
 import closeIcon from '../assets/icons/close.svg?url';
 
+/**
+ * Bottom bar: the "Menu" pill plus, on Work pages (home + project pages), the
+ * project thumbnail strip. It sits outside the Barba container, so it persists
+ * across page transitions; scripts/nav.ts keeps its state in sync.
+ */
 const { navLabels, figmaUrl } = await getSiteSettings();
+const projects = await getProjects();
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const activeSlug = path.startsWith('/work/') ? path.slice('/work/'.length) : projects[0]?.slug;
+const showStrip = path === '/' || path.startsWith('/work/');
 const links = [
   { label: navLabels.work, href: '/' },
   { label: navLabels.about, href: '/about' },
@@ -12,56 +20,108 @@ const links = [
   { label: navLabels.pizzaHunts, href: '/pizza-hunts' },
 ];
 ---
-<nav class="site-nav" data-nav data-open="false" aria-label="Main">
-  <button class="site-nav__toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="nav-menu">
-    Menu
-    <img class="site-nav__icon site-nav__icon--menu" src={menuIcon} width="20" height="20" alt="" />
-    <img class="site-nav__icon site-nav__icon--close" src={closeIcon} width="20" height="20" alt="" />
-  </button>
-  <ul id="nav-menu" class="site-nav__menu" data-nav-menu data-open="false">
-    {links.map((link) => (
+<nav class="site-nav" data-nav data-open="false" data-strip={String(showStrip)} aria-label="Main">
+  <div class="site-nav__main" data-nav-main>
+    <button class="site-nav__toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="nav-menu">
+      Menu
+      <img class="site-nav__icon site-nav__icon--menu" src={menuIcon} width="20" height="20" alt="" />
+      <img class="site-nav__icon site-nav__icon--close" src={closeIcon} width="20" height="20" alt="" />
+    </button>
+    <ul id="nav-menu" class="site-nav__menu" data-nav-menu data-open="false">
+      {links.map((link) => (
+        <li>
+          <a
+            class="site-nav__link"
+            href={link.href}
+            data-nav-link
+            aria-current={!link.external && link.href === path ? 'page' : undefined}
+            target={link.external ? '_blank' : undefined}
+            rel={link.external ? 'noopener noreferrer' : undefined}
+          >
+            {link.label}
+          </a>
+        </li>
+      ))}
       <li>
-        <a
-          class="site-nav__link"
-          href={link.href}
-          aria-current={!link.external && link.href === path ? 'page' : undefined}
-          target={link.external ? '_blank' : undefined}
-          rel={link.external ? 'noopener noreferrer' : undefined}
-        >
-          {link.label}
-        </a>
+        <button class="site-nav__link" type="button" data-nav-link data-contact-open>{navLabels.contact}</button>
       </li>
-    ))}
-    <li>
-      <button class="site-nav__link" type="button" data-contact-open>{navLabels.contact}</button>
-    </li>
-  </ul>
+    </ul>
+  </div>
+
+  <div class="site-nav__strip" data-nav-strip>
+    <ul class="site-nav__thumbs" aria-label="Projects">
+      {projects.map((project, index) => (
+        <li class="site-nav__thumb-item" data-thumb-item data-active={String(project.slug === activeSlug)}>
+          <a
+            class="site-nav__thumb"
+            href={`/work/${project.slug}`}
+            data-thumb
+            data-index={index}
+            data-slug={project.slug}
+            aria-label={project.title}
+            aria-current={project.slug === activeSlug ? 'true' : undefined}
+            style={`--project-color: ${project.color}`}
+          >
+            <img
+              class="site-nav__thumb-image"
+              src={project.thumbnail.url}
+              width={project.thumbnail.width}
+              height={project.thumbnail.height}
+              alt=""
+            />
+            <!-- Slide timer: traced clockwise from the top center; the slider animates it -->
+            <svg class="site-nav__thumb-timer" viewBox="0 0 60.57 40" aria-hidden="true">
+              <path
+                d="M30.29 0H57.37A3.2 3.2 0 0 1 60.57 3.2V36.8A3.2 3.2 0 0 1 57.37 40H3.2A3.2 3.2 0 0 1 0 36.8V3.2A3.2 3.2 0 0 1 3.2 0Z"
+                pathLength="1"
+                data-thumb-timer
+              />
+            </svg>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
 </nav>
 
 <style>
   .site-nav {
     position: fixed;
-    bottom: 32px;
+    bottom: var(--nav-bottom);
     left: 50%;
     transform: translateX(-50%);
-    z-index: 100;
+    z-index: var(--z-nav);
     display: flex;
-    flex-direction: column;
     align-items: center;
-    padding: 4px;
-    border-radius: 8px;
-    background: rgb(225 225 225 / 0.65);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    gap: var(--space-xsm);
     font-size: var(--body-md-size);
     font-weight: var(--body-md-weight-semibold);
     line-height: normal;
     color: var(--color-black);
-    transition: background-color 0.2s ease;
+  }
+
+  /* Both pills share the frosted surface */
+  .site-nav__main,
+  .site-nav__strip {
+    padding: var(--space-xsm);
+    border-radius: var(--radius-md);
+    background: var(--surface-glass);
+    backdrop-filter: blur(var(--surface-glass-blur));
+    -webkit-backdrop-filter: blur(var(--surface-glass-blur));
+  }
+
+  .site-nav__main {
+    position: relative;
+    z-index: 1; /* the open menu slides over the strip */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    transition: background-color var(--motion-fast) ease;
   }
 
   @media (hover: hover) {
-    .site-nav[data-open='false']:hover {
+    .site-nav[data-open='false'] .site-nav__main:hover {
       background: var(--color-pink);
     }
   }
@@ -80,10 +140,10 @@ const links = [
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: var(--space-xsm);
     min-height: 32px;
     padding: 6px 12px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
   }
 
   .site-nav__icon {
@@ -111,18 +171,99 @@ const links = [
     align-items: center;
     justify-content: center;
     height: 40px;
-    padding: 6px 24px;
+    padding: 6px var(--space-lg);
     white-space: nowrap;
+    transition: opacity var(--motion-fast) ease;
   }
 
   .site-nav__link[aria-current='page'] {
     opacity: 0.5;
   }
 
+  /* Hovering one link dims the rest (Figma 209:41543) */
+  @media (hover: hover) {
+    .site-nav__menu:has(.site-nav__link:hover) .site-nav__link:not(:hover) {
+      opacity: 0.5;
+    }
+
+    .site-nav__menu .site-nav__link:hover {
+      opacity: 1;
+    }
+  }
+
   .site-nav__toggle:focus-visible,
-  .site-nav__link:focus-visible {
+  .site-nav__link:focus-visible,
+  .site-nav__thumb:focus-visible {
     outline: 2px solid var(--color-black);
-    outline-offset: 2px;
+    outline-offset: -2px;
+  }
+
+  /* Project strip — desktop Work pages only */
+  .site-nav__strip {
+    display: none;
+  }
+
+  .site-nav__thumbs {
+    display: flex;
+    gap: var(--space-xsm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-nav__thumb {
+    position: relative;
+    display: block;
+    width: 60.57px;
+    height: 40px;
+    overflow: hidden;
+    border-radius: var(--radius-xs);
+    background: var(--project-color);
+  }
+
+  .site-nav__thumb::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--thumb-dim);
+    transition: opacity var(--motion-fast) ease;
+  }
+
+  .site-nav__thumb-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  /* Half the 4px stroke sits outside the thumbnail and is clipped, as in Figma */
+  .site-nav__thumb-timer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--color-pink);
+    stroke-width: 4;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0; /* full when not timing (project pages) */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--motion-fast) ease;
+  }
+
+  [data-active='true'] > .site-nav__thumb::after {
+    opacity: 0;
+  }
+
+  [data-active='true'] > .site-nav__thumb .site-nav__thumb-timer {
+    opacity: 1;
+  }
+
+  @media (hover: hover) {
+    .site-nav__thumb:hover::after {
+      opacity: 0;
+    }
   }
 
   /* Mobile open: full-width panel growing upward, stacked links, "Menu ×" at the bottom */
@@ -130,6 +271,10 @@ const links = [
     left: var(--grid-margin);
     right: var(--grid-margin);
     transform: none;
+  }
+
+  .site-nav[data-open='true'] .site-nav__main {
+    width: 100%;
     gap: var(--space-md);
     padding: var(--space-md) var(--space-md) var(--space-sm);
   }
@@ -147,17 +292,22 @@ const links = [
 
   .site-nav[data-open='true'] .site-nav__link {
     width: 100%;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     background: rgb(255 255 255 / 0.24);
   }
 
   @media (min-width: 1024px) {
-    .site-nav {
-      bottom: var(--space-xlg);
-    }
-
     .site-nav__toggle {
       min-height: 40px;
+    }
+
+    /* Keeps "Menu" anchored left while the pill shrinks back from the link row */
+    .site-nav__main {
+      align-items: flex-start;
+    }
+
+    .site-nav[data-strip='true'] .site-nav__strip {
+      display: block;
     }
 
     /* Desktop open: the pill becomes a single row of links, still centered */
@@ -165,8 +315,12 @@ const links = [
       left: 50%;
       right: auto;
       transform: translateX(-50%);
+    }
+
+    .site-nav[data-open='true'] .site-nav__main {
+      width: auto;
       flex-direction: row;
-      padding: 4px;
+      padding: var(--space-xsm);
     }
 
     .site-nav[data-open='true'] .site-nav__toggle {
@@ -183,6 +337,12 @@ const links = [
       width: auto;
       border-radius: 40px;
       background: none;
+    }
+
+    /* Only the active project stays in the strip while the menu is open;
+       scripts/nav.ts fades the others out where they stood. */
+    .site-nav[data-open='true'] .site-nav__thumb-item:not([data-active='true']) {
+      display: none;
     }
   }
 </style>

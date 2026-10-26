@@ -1,0 +1,31 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Nav from '../../components/Nav.astro';
+import ProjectPanel from '../../components/ProjectPanel.astro';
+import { getProjects, getSiteSettings } from '../../lib/content';
+import type { Project } from '../../lib/types';
+
+export const getStaticPaths = (async () => {
+  const projects = await getProjects();
+  return projects.map((project) => ({ params: { slug: project.slug }, props: { project } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  project: Project;
+}
+const { project } = Astro.props;
+const { defaultSeo } = await getSiteSettings();
+const ogImage = project.cover.type === 'image' ? project.cover.url : project.thumbnail.url;
+---
+<BaseLayout
+  title={`${project.title} — ${defaultSeo.title}`}
+  description={project.description}
+  canonicalPath={`/work/${project.slug}`}
+  ogImage={ogImage}
+  bodyClass="theme-work"
+  namespace="project"
+>
+  <Nav slot="nav" />
+  <ProjectPanel project={project} />
+</BaseLayout>

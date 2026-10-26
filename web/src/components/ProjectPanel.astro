@@ -1,0 +1,169 @@
+---
+import type { Project } from '../lib/types';
+import IconButton from './IconButton.astro';
+import InfoBlock from './InfoBlock.astro';
+import ProjectMedia from './ProjectMedia.astro';
+import TagList from './TagList.astro';
+import closeIcon from '../assets/icons/close-small.svg?url';
+
+/**
+ * The white project sheet ("Popup" in Figma). The surface ([data-panel]) is what
+ * the home info card grows into; [data-panel-content] is what fades in/out on
+ * open, close and project-to-project switches (scripts/transitions.ts).
+ */
+interface Props {
+  project: Project;
+}
+const { project } = Astro.props;
+---
+<article class="project-panel" data-panel aria-labelledby="project-title">
+  <!-- Pinned to the panel corner, outside the scroller -->
+  <div class="project-panel__close" data-panel-close>
+    <IconButton href="/" label="Close project" icon={closeIcon} size="lg" data-project-close />
+  </div>
+
+  <div class="project-panel__scroller" data-panel-scroller>
+    <div class="project-panel__content" data-panel-content>
+      <div class="project-panel__media">
+        {project.gallery.map((media, index) => (
+          <div class="project-panel__media-item" style={`--project-color: ${project.color}`}>
+            <ProjectMedia media={media} priority={index === 0} />
+          </div>
+        ))}
+      </div>
+
+      <div class="project-panel__info">
+        <div class="project-panel__details">
+          <header class="project-panel__synopsis">
+            <div class="project-panel__heading">
+              <h1 id="project-title" class="project-panel__title">{project.title}</h1>
+              <p class="project-panel__industry">{project.industry}</p>
+            </div>
+            <p class="project-panel__description">{project.description}</p>
+            <TagList tags={project.tags} />
+          </header>
+
+          {project.infoBlocks.length > 0 && (
+            <div class="project-panel__blocks">
+              {project.infoBlocks.map((block) => <InfoBlock block={block} />)}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<style>
+  .project-panel {
+    position: fixed;
+    top: var(--space-md);
+    right: var(--space-md);
+    bottom: calc(var(--nav-bottom) + var(--nav-height) + var(--space-md));
+    left: var(--space-md);
+    z-index: var(--z-panel);
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--surface-solid);
+  }
+
+  .project-panel__scroller {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none; /* still scrollable — wheel, trackpad, keyboard */
+  }
+
+  .project-panel__scroller::-webkit-scrollbar {
+    display: none;
+  }
+
+  .project-panel__content {
+    display: grid;
+    grid-template-columns: minmax(0, 785fr) minmax(0, 459fr);
+    column-gap: calc(var(--space-xxlg) * 2);
+    align-items: start;
+    padding: var(--space-md);
+  }
+
+  .project-panel__media {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .project-panel__media-item {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--project-color);
+  }
+
+  .project-panel__close {
+    position: absolute;
+    top: var(--space-md);
+    right: var(--space-md);
+    z-index: 1;
+  }
+
+  .project-panel__info {
+    position: sticky;
+    top: 0;
+    padding-top: 40px; /* height of the pinned close button (IconButton size="lg"), as in Figma */
+  }
+
+  .project-panel__details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xxlg);
+    width: 100%;
+  }
+
+  .project-panel__synopsis {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  .project-panel__heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .project-panel__title {
+    margin: 0;
+    font-size: var(--h2-size);
+    line-height: var(--h2-line-height);
+    letter-spacing: var(--h2-letter-spacing);
+    font-weight: var(--h2-weight);
+  }
+
+  .project-panel__industry,
+  .project-panel__description {
+    margin: 0;
+  }
+
+  .project-panel__industry {
+    color: var(--color-gray-500);
+  }
+
+  .project-panel__blocks {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  /* Desktop-first for now: stack the columns on narrow screens */
+  @media (max-width: 1023px) {
+    .project-panel__content {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-xlg);
+    }
+
+    .project-panel__info {
+      position: static;
+      order: -1;
+    }
+  }
+</style>

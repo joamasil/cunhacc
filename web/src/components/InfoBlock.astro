@@ -1,0 +1,85 @@
+---
+import type { InfoBlock } from '../lib/types';
+
+/** Titled label/value list on the project page ("Credits", "Client", …). */
+interface Props {
+  block: InfoBlock;
+}
+const { block } = Astro.props;
+---
+<section class="info-block">
+  <h3 class="info-block__title">{block.title}</h3>
+  <dl class="info-block__rows">
+    {block.rows.map((row) => (
+      <div class="info-block__row">
+        <dt class="info-block__label">{row.label}</dt>
+        <dd class="info-block__value">
+          {row.href ? (
+            <a href={row.href} target="_blank" rel="noopener noreferrer">{row.value}↗</a>
+          ) : (
+            row.value.split('\n').map((line, index) => (index === 0 ? line : [<br />, line]))
+          )}
+        </dd>
+      </div>
+    ))}
+  </dl>
+</section>
+
+<style>
+  .info-block {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .info-block__title {
+    margin: 0;
+    font-size: var(--body-md-size);
+    line-height: var(--body-md-line-height);
+    letter-spacing: var(--body-md-letter-spacing);
+    font-weight: var(--body-md-weight-semibold);
+  }
+
+  .info-block__rows {
+    margin: 0;
+  }
+
+  .info-block__row {
+    display: grid;
+    grid-template-columns: 218px minmax(0, 1fr);
+    align-items: start;
+    padding-block: var(--space-sm);
+    border-top: 1px solid var(--color-gray-100);
+  }
+
+  .info-block__row:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .info-block__row:last-child {
+    padding-bottom: 0;
+  }
+
+  .info-block__label {
+    padding-top: 1px; /* optically aligns 14px label with 16px value */
+    color: var(--color-gray-500);
+    font-size: var(--body-sm-size);
+    line-height: var(--body-sm-line-height);
+  }
+
+  .info-block__value {
+    margin: 0;
+  }
+
+  .info-block__value a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  @media (hover: hover) {
+    .info-block__value a:hover {
+      color: var(--color-pink);
+    }
+  }
+</style>

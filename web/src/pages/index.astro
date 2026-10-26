@@ -1,8 +1,66 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Nav from '../components/Nav.astro';
+import ProjectInfoCard from '../components/ProjectInfoCard.astro';
+import ProjectMedia from '../components/ProjectMedia.astro';
+import { getProjects, getSiteSettings } from '../lib/content';
+
+const projects = await getProjects();
+const { defaultSeo } = await getSiteSettings();
 ---
-<BaseLayout title="Joana Cunha — Portfolio" description="Design & development portfolio." canonicalPath="/">
+<BaseLayout
+  title={defaultSeo.title}
+  description={defaultSeo.description}
+  canonicalPath="/"
+  bodyClass="theme-work"
+>
   <Nav slot="nav" />
-  <h1>Home (coming soon)</h1>
+  <h1 class="visually-hidden">{defaultSeo.title}</h1>
+
+  <section class="work-slider" data-work-slider aria-roledescription="carousel" aria-label="Projects">
+    {projects.map((project, index) => (
+      <div
+        class="work-slider__slide"
+        data-slide
+        data-slug={project.slug}
+        data-active={String(index === 0)}
+        aria-roledescription="slide"
+        aria-label={`${index + 1} of ${projects.length}: ${project.title}`}
+        aria-hidden={index === 0 ? undefined : 'true'}
+        style={`--project-color: ${project.color}`}
+      >
+        <ProjectMedia media={project.cover} priority={index === 0} />
+      </div>
+    ))}
+  </section>
+
+  <ProjectInfoCard projects={projects} />
 </BaseLayout>
+
+<style>
+  .work-slider {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    touch-action: pan-y;
+    user-select: none;
+  }
+
+  .work-slider :global(img) {
+    -webkit-user-drag: none;
+  }
+
+  .work-slider__slide {
+    position: absolute;
+    inset: 0;
+    background: var(--project-color);
+    transition:
+      opacity var(--motion-slow) var(--ease-in-out),
+      visibility var(--motion-slow);
+  }
+
+  .work-slider__slide[data-active='false'] {
+    opacity: 0;
+    visibility: hidden;
+  }
+</style>

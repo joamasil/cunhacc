@@ -1,0 +1,102 @@
+---
+import type { Project } from '../lib/types';
+import IconButton from './IconButton.astro';
+import TagList from './TagList.astro';
+import expandIcon from '../assets/icons/expand.svg?url';
+
+/**
+ * Frosted card (top-right of the home slider) with the active project's info.
+ * Every project's content is rendered stacked in one grid cell so the card
+ * keeps a stable size and the slider just cross-fades between them. On expand
+ * the card grows into the project panel (see scripts/transitions.ts).
+ */
+interface Props {
+  projects: Project[];
+  activeIndex?: number;
+}
+const { projects, activeIndex = 0 } = Astro.props;
+---
+<aside class="info-card" data-info-card aria-live="polite">
+  {projects.map((project, index) => (
+    <div
+      class="info-card__item"
+      data-info-item
+      data-active={String(index === activeIndex)}
+      aria-hidden={index === activeIndex ? undefined : 'true'}
+    >
+      <div class="info-card__top">
+        <div class="info-card__heading">
+          <h2 class="info-card__title">{project.title}</h2>
+          <p class="info-card__industry">{project.industry}</p>
+        </div>
+        <IconButton
+          href={`/work/${project.slug}`}
+          label={`Open ${project.title}`}
+          icon={expandIcon}
+          tabindex={index === activeIndex ? undefined : -1}
+          data-expand
+        />
+      </div>
+      <TagList tags={project.tags} />
+    </div>
+  ))}
+</aside>
+
+<style>
+  .info-card {
+    position: fixed;
+    top: var(--space-md);
+    right: var(--space-md);
+    z-index: var(--z-card);
+    display: grid;
+    width: 334px;
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+    background: var(--surface-glass);
+    backdrop-filter: blur(var(--surface-glass-blur));
+    -webkit-backdrop-filter: blur(var(--surface-glass-blur));
+  }
+
+  .info-card__item {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-lg);
+    transition:
+      opacity var(--motion-base) var(--ease-out),
+      visibility var(--motion-base);
+  }
+
+  .info-card__item[data-active='false'] {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .info-card__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-sm);
+  }
+
+  .info-card__heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    min-width: 0;
+  }
+
+  .info-card__title {
+    margin: 0;
+    font-size: var(--body-lg-size);
+    line-height: var(--body-lg-line-height);
+    letter-spacing: var(--body-lg-letter-spacing);
+    font-weight: var(--body-lg-weight-medium);
+  }
+
+  .info-card__industry {
+    margin: 0;
+    color: var(--color-gray-500);
+  }
+</style>

@@ -1,0 +1,22 @@
+---
+/** Small gray label — Figma "Tag". */
+interface Props {
+  label: string;
+}
+const { label } = Astro.props;
+---
+<li class="tag">{label}</li>
+
+<style>
+  .tag {
+    display: flex;
+    align-items: center;
+    padding: var(--space-xsm) 12px;
+    border-radius: var(--radius-md);
+    background: var(--color-gray-50);
+    color: var(--color-gray-500);
+    font-size: var(--body-sm-size);
+    line-height: var(--body-sm-line-height);
+    white-space: nowrap;
+  }
+</style>
