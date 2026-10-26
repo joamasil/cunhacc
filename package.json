@@ -1,5 +1,10 @@
 {
   "name": "cunhacc",
   "private": true,
-  "workspaces": ["web", "studio"]
+  "workspaces": ["web", "studio"],
+  "scripts": {
+    "dev": "npm run dev -w web",
+    "build": "npm run build -w web",
+    "preview": "npm run preview -w web"
+  }
 }
