@@ -1,26 +1,21 @@
 import type {StructureResolver} from 'sanity/structure'
+import {orderableDocumentListDeskItem} from '@sanity/orderable-document-list'
 import {CogIcon} from '@sanity/icons/Cog'
-import {ProjectsIcon} from '@sanity/icons/Projects'
+import {SparklesIcon} from '@sanity/icons/Sparkles'
 import {UserIcon} from '@sanity/icons/User'
 
-export const structure: StructureResolver = (S) =>
+export const structure: StructureResolver = (S, context) =>
   S.list()
     .title('Content')
     .items([
-      S.listItem()
-        .title('Projects')
-        .icon(ProjectsIcon)
-        .child(
-          S.documentTypeList('project')
-            .title('Projects')
-            .defaultOrdering([{field: 'order', direction: 'asc'}]),
-        ),
-      S.divider(),
+      // Drag and drop to set the slider order
+      orderableDocumentListDeskItem({type: 'project', title: 'Projects', icon: SparklesIcon, S, context}),
       // Singletons: fixed document IDs, so there is only ever one of each
       S.listItem()
         .title('About')
         .icon(UserIcon)
         .child(S.document().schemaType('about').documentId('about').title('About')),
+      S.divider(),
       S.listItem()
         .title('Site settings')
         .icon(CogIcon)

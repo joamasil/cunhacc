@@ -1,15 +1,21 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {UserIcon} from '@sanity/icons/User'
+import {seoFields} from '../fields/seo'
 
 /** Singleton — the About page. */
 export const about = defineType({
   name: 'about',
   type: 'document',
   icon: UserIcon,
+  groups: [
+    {name: 'content', title: 'Content', default: true},
+    {name: 'seo', title: 'SEO'},
+  ],
   fields: [
-    defineField({name: 'heading', type: 'string', validation: (rule) => rule.required()}),
-    defineField({name: 'intro', type: 'text', rows: 3}),
+    defineField({name: 'heading', group: 'content', type: 'string', validation: (rule) => rule.required()}),
+    defineField({name: 'intro', group: 'content', type: 'text', rows: 3}),
     defineField({
+      group: 'content',
       name: 'bio',
       type: 'array',
       of: [
@@ -21,14 +27,16 @@ export const about = defineType({
         }),
       ],
     }),
-    defineField({name: 'portrait', type: 'accessibleImage', validation: (rule) => rule.required()}),
+    defineField({name: 'portrait', group: 'content', type: 'accessibleImage', validation: (rule) => rule.required()}),
     defineField({
+      group: 'content',
       name: 'resume',
       title: 'CV (PDF)',
       type: 'file',
       options: {accept: 'application/pdf'},
     }),
     defineField({
+      group: 'content',
       name: 'education',
       type: 'array',
       of: [
@@ -45,6 +53,7 @@ export const about = defineType({
       ],
     }),
     defineField({
+      group: 'content',
       name: 'experience',
       type: 'array',
       of: [
@@ -61,6 +70,7 @@ export const about = defineType({
       ],
     }),
     defineField({
+      group: 'content',
       name: 'skills',
       type: 'array',
       of: [
@@ -80,7 +90,8 @@ export const about = defineType({
         }),
       ],
     }),
-    defineField({name: 'socialLinks', type: 'array', of: [defineArrayMember({type: 'socialLink'})]}),
+    defineField({name: 'socialLinks', group: 'content', type: 'array', of: [defineArrayMember({type: 'socialLink'})]}),
+    ...seoFields({titleHint: 'Defaults to "About". The site name is added after it.'}),
   ],
   preview: {prepare: () => ({title: 'About'})},
 })

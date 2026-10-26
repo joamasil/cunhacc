@@ -2,8 +2,10 @@ import {about} from './documents/about'
 import {project} from './documents/project'
 import {siteSettings} from './documents/siteSettings'
 import {accessibleImage} from './objects/accessibleImage'
+import {galleryItem} from './objects/galleryItem'
 import {infoBlock} from './objects/infoBlock'
 import {projectMedia} from './objects/projectMedia'
+import {readMoreBreak} from './objects/readMoreBreak'
 import {socialLink} from './objects/socialLink'
 
 export const schemaTypes = [
@@ -14,6 +16,8 @@ export const schemaTypes = [
   // Objects
   accessibleImage,
   projectMedia,
+  galleryItem,
+  readMoreBreak,
   infoBlock,
   socialLink,
 ]

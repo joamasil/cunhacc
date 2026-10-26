@@ -2,13 +2,13 @@ import {defineField, defineType} from 'sanity'
 import {ImagesIcon} from '@sanity/icons/Images'
 
 /**
- * One image or video on a project (the home slider cover or a gallery item).
- * Videos are linked by URL rather than uploaded: Sanity file assets aren't
- * streamed or transcoded, so large video files are slow and costly to serve.
+ * A project's cover image or video (gallery items extend it, see galleryItem).
+ * Videos are uploaded as plain files: Sanity serves them as-is (no streaming
+ * or transcoding), so keep them short, compressed loops.
  */
 export const projectMedia = defineType({
   name: 'projectMedia',
-  title: 'Media',
+  title: 'Cover media',
   type: 'object',
   icon: ImagesIcon,
   fields: [
@@ -36,17 +36,15 @@ export const projectMedia = defineType({
         ),
     }),
     defineField({
-      name: 'videoUrl',
-      title: 'Video URL',
-      type: 'url',
-      description: 'Direct link to an .mp4/.webm file on a video host.',
+      name: 'video',
+      type: 'file',
+      description: 'MP4 or WebM, compressed — ideally under 5 MB.',
+      options: {accept: 'video/mp4,video/webm'},
       hidden: ({parent}) => parent?.kind !== 'video',
       validation: (rule) =>
-        rule
-          .uri({scheme: ['https']})
-          .custom((value, {parent}) =>
-            (parent as {kind?: string})?.kind === 'video' && !value ? 'Add a video URL' : true,
-          ),
+        rule.custom((value, {parent}) =>
+          (parent as {kind?: string})?.kind === 'video' && !value?.asset ? 'Upload a video' : true,
+        ),
     }),
     defineField({
       name: 'poster',
@@ -57,20 +55,6 @@ export const projectMedia = defineType({
         rule.custom((value, {parent}) =>
           (parent as {kind?: string})?.kind === 'video' && !value ? 'Add a poster image' : true,
         ),
-    }),
-    defineField({
-      name: 'fit',
-      type: 'string',
-      description: 'Fill the frame edge to edge, or show the whole asset centered.',
-      options: {
-        list: [
-          {title: 'Fill', value: 'cover'},
-          {title: 'Fit whole', value: 'contain'},
-        ],
-        layout: 'radio',
-        direction: 'horizontal',
-      },
-      initialValue: 'cover',
     }),
   ],
   preview: {

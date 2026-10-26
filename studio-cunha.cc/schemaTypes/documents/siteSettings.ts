@@ -1,5 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {CogIcon} from '@sanity/icons/Cog'
+import {seoFields} from '../fields/seo'
 
 /** Singleton — site-wide settings. */
 export const siteSettings = defineType({
@@ -20,27 +21,10 @@ export const siteSettings = defineType({
       validation: (rule) => rule.required().email(),
     }),
     defineField({
-      name: 'timeZone',
-      type: 'string',
-      group: 'general',
-      description: 'IANA time zone for the live clock on the Contact card, e.g. Europe/Lisbon.',
-      initialValue: 'Europe/Lisbon',
-      validation: (rule) => rule.required(),
-    }),
-    defineField({
       name: 'figmaUrl',
       title: 'Figma URL',
       type: 'url',
       group: 'navigation',
-    }),
-    defineField({
-      name: 'navLabels',
-      title: 'Navigation labels',
-      type: 'object',
-      group: 'navigation',
-      fields: ['work', 'about', 'figma', 'pizzaHunts', 'contact'].map((name) =>
-        defineField({name, type: 'string', validation: (rule) => rule.required()}),
-      ),
     }),
     defineField({
       name: 'socialLinks',
@@ -48,27 +32,8 @@ export const siteSettings = defineType({
       group: 'general',
       of: [defineArrayMember({type: 'socialLink'})],
     }),
-    defineField({
-      name: 'defaultSeo',
-      title: 'Default SEO',
-      type: 'object',
-      group: 'seo',
-      fields: [
-        defineField({
-          name: 'title',
-          type: 'string',
-          description: 'Site name — also the suffix on every page title.',
-          validation: (rule) => rule.required(),
-        }),
-        defineField({
-          name: 'description',
-          type: 'text',
-          rows: 2,
-          validation: (rule) => rule.required().max(160).warning('Search results cut off around 160 characters'),
-        }),
-        defineField({name: 'ogImage', title: 'Share image', type: 'accessibleImage'}),
-      ],
-    }),
+    // Site-wide defaults for pages that leave their own SEO fields empty
+    ...seoFields({required: true, titleHint: 'Site name — the home page title and the suffix on every other page title.'}),
   ],
   preview: {prepare: () => ({title: 'Site settings'})},
 })
