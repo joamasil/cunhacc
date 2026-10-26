@@ -39,7 +39,15 @@ const { project } = Astro.props;
               <h1 id="project-title" class="project-panel__title">{project.title}</h1>
               <p class="project-panel__industry">{project.industry}</p>
             </div>
-            <p class="project-panel__description">{project.description}</p>
+            <div class="project-panel__description">
+              <Fragment set:html={project.description.intro} />
+              {project.description.more && (
+                <details class="project-panel__more">
+                  <summary>Read more</summary>
+                  <div class="project-panel__more-text" set:html={project.description.more} />
+                </details>
+              )}
+            </div>
             <TagList tags={project.tags} />
           </header>
 
@@ -139,9 +147,42 @@ const { project } = Astro.props;
     font-weight: var(--h2-weight);
   }
 
-  .project-panel__industry,
-  .project-panel__description {
+  .project-panel__industry {
     margin: 0;
+  }
+
+  .project-panel__description,
+  .project-panel__more-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .project-panel__description :global(p) {
+    margin: 0;
+  }
+
+  /* Native <details>: no script, survives page transitions; the toggle disappears once open */
+  .project-panel__more summary {
+    width: fit-content;
+    list-style: none;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .project-panel__more summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .project-panel__more[open] summary {
+    display: none;
+  }
+
+  @media (hover: hover) {
+    .project-panel__more summary:hover {
+      color: var(--color-pink);
+    }
   }
 
   .project-panel__industry {

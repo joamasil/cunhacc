@@ -1,16 +1,8 @@
 import type { SiteSettings } from '../types';
 
 export const siteSettings: SiteSettings = {
-  navLabels: {
-    work: 'Work',
-    about: 'About',
-    figma: 'Figma',
-    pizzaHunts: 'Pizza hunts',
-    contact: 'Contact',
-  },
   figmaUrl: 'https://www.figma.com/',
   contactEmail: 'hello@example.com',
-  timeZone: 'Europe/Lisbon',
   defaultSeo: {
     title: 'cunha.cc',
     description: 'Design & development portfolio.',

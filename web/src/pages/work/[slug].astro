@@ -16,11 +16,12 @@ interface Props {
 }
 const { project } = Astro.props;
 const { defaultSeo } = await getSiteSettings();
-const ogImage = project.cover.type === 'image' ? project.cover.url : project.thumbnail.url;
+const ogImage =
+  project.seo?.ogImage?.url ?? (project.cover.type === 'image' ? project.cover.url : project.thumbnail.url);
 ---
 <BaseLayout
-  title={`${project.title} — ${defaultSeo.title}`}
-  description={project.description}
+  title={`${project.seo?.title || project.title} — ${defaultSeo.title}`}
+  description={project.seo?.description || project.excerpt}
   canonicalPath={`/work/${project.slug}`}
   ogImage={ogImage}
   bodyClass="theme-work"

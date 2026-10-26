@@ -5,12 +5,9 @@ export interface SanityImage {
   height: number;
 }
 
-/** How a media item fills its frame: edge to edge, or whole and centered. */
-export type MediaFit = 'cover' | 'contain';
-
 export type ProjectMedia =
-  | (SanityImage & { type: 'image'; fit?: MediaFit })
-  | { type: 'video'; url: string; poster?: string; alt: string; width: number; height: number; fit?: MediaFit };
+  | (SanityImage & { type: 'image' })
+  | { type: 'video'; url: string; poster?: string; alt: string; width: number; height: number };
 
 export interface InfoRow {
   label: string;
@@ -19,17 +16,26 @@ export interface InfoRow {
   href?: string;
 }
 
-/** A titled list of rows on the project page — "Credits", "Client", etc. */
-export interface InfoBlock {
-  title: string;
-  rows: InfoRow[];
+/** A titled block on the project page: label/value rows ("Credits") or a line of images ("Awards"). */
+export type InfoBlock =
+  | { type: 'rows'; title: string; rows: InfoRow[] }
+  | { type: 'images'; title: string; images: SanityImage[] };
+
+/** Per-page SEO overrides from the CMS; empty fields fall back to page content or the site defaults. */
+export interface PageSeo {
+  title?: string;
+  description?: string;
+  ogImage?: SanityImage;
 }
 
 export interface Project {
   slug: string;
   title: string;
   industry: string;
-  description: string;
+  /** Rich text (HTML) split at the editor's "Read more" break; `more` stays hidden until clicked. */
+  description: { intro: string; more?: string };
+  /** Plain text of `description.intro` — the fallback meta description. */
+  excerpt: string;
   tags: string[];
   /** Brand color shown behind the cover and thumbnail. */
   color: string;
@@ -41,6 +47,7 @@ export interface Project {
   gallery: ProjectMedia[];
   infoBlocks: InfoBlock[];
   order: number;
+  seo?: PageSeo;
 }
 
 export interface FunItem {
@@ -83,14 +90,12 @@ export interface About {
   education: EducationItem[];
   experience: ExperienceItem[];
   skills: Skill[];
+  seo?: PageSeo;
 }
 
 export interface SiteSettings {
-  navLabels: { work: string; about: string; figma: string; pizzaHunts: string; contact: string };
   figmaUrl: string;
   contactEmail: string;
-  /** IANA time zone for the live clock on the Contact card, e.g. "Europe/Lisbon". */
-  timeZone: string;
   defaultSeo: { title: string; description: string; ogImage: SanityImage };
   socialLinks: SocialLink[];
 }

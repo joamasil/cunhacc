@@ -1,6 +1,6 @@
 import barba from '@barba/core';
 import type { ITransitionData } from '@barba/core/dist/core/src/src/defs';
-import { closeNav, syncNav } from './nav';
+import { closeNav, syncNav, transitionStrip } from './nav';
 import { fade, motion, settled } from './motion';
 import { setInitialSlide } from './work-slider';
 
@@ -147,7 +147,8 @@ export function initTransitions(initPage: PageInit): void {
   if (!document.querySelector('[data-barba="wrapper"]')) return;
 
   barba.hooks.before((data) => {
-    void closeNav();
+    const nextPath = data?.next.url.path;
+    void closeNav().then(() => (nextPath ? transitionStrip(nextPath) : undefined));
     const slug = slugOf(data?.current.url.path);
     if (slug) setInitialSlide(slug);
   });

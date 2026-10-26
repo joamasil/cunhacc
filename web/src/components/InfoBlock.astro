@@ -1,7 +1,7 @@
 ---
 import type { InfoBlock } from '../lib/types';
 
-/** Titled label/value list on the project page ("Credits", "Client", …). */
+/** Titled block on the project page: label/value rows ("Credits", "Client", …) or a line of images ("Awards"). */
 interface Props {
   block: InfoBlock;
 }
@@ -9,20 +9,30 @@ const { block } = Astro.props;
 ---
 <section class="info-block">
   <h3 class="info-block__title">{block.title}</h3>
-  <dl class="info-block__rows">
-    {block.rows.map((row) => (
-      <div class="info-block__row">
-        <dt class="info-block__label">{row.label}</dt>
-        <dd class="info-block__value">
-          {row.href ? (
-            <a href={row.href} target="_blank" rel="noopener noreferrer">{row.value}↗</a>
-          ) : (
-            row.value.split('\n').map((line, index) => (index === 0 ? line : [<br />, line]))
-          )}
-        </dd>
-      </div>
-    ))}
-  </dl>
+  {block.type === 'rows' ? (
+    <dl class="info-block__rows">
+      {block.rows.map((row) => (
+        <div class="info-block__row">
+          <dt class="info-block__label">{row.label}</dt>
+          <dd class="info-block__value">
+            {row.href ? (
+              <a href={row.href} target="_blank" rel="noopener noreferrer">{row.value}↗</a>
+            ) : (
+              row.value.split('\n').map((line, index) => (index === 0 ? line : [<br />, line]))
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  ) : (
+    <ul class="info-block__images">
+      {block.images.map((image) => (
+        <li>
+          <img src={image.url} alt={image.alt} width={image.width} height={image.height} loading="lazy" decoding="async" />
+        </li>
+      ))}
+    </ul>
+  )}
 </section>
 
 <style>
@@ -70,6 +80,22 @@ const { block } = Astro.props;
 
   .info-block__value {
     margin: 0;
+  }
+
+  .info-block__images {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .info-block__images img {
+    display: block;
+    width: auto;
+    height: 32px;
   }
 
   .info-block__value a {

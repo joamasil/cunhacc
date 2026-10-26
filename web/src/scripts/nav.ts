@@ -219,12 +219,58 @@ export function setActiveThumb(index: number): void {
   });
 }
 
+const isWorkPath = (path: string) => {
+  const normalized = normalizePath(path);
+  return normalized === '/' || normalized.startsWith('/work/');
+};
+
+/**
+ * Shows/hides the project strip for the page at `path`. The bar is centered,
+ * so toggling the strip re-centers the Menu pill; slide it there (FLIP) and
+ * fade the strip instead of letting it jump.
+ */
+export async function transitionStrip(path: string): Promise<void> {
+  if (!nav || !main || !strip) return;
+  const show = isWorkPath(path);
+  if (nav.dataset.strip === String(show)) return;
+  const run = ++generation;
+  const { fast, slow, easeOut } = motion();
+
+  if (!show && stripShown()) {
+    const out = strip.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fast, easing: 'ease-out', fill: 'forwards' });
+    running.push(out);
+    await settled([out]);
+    if (run !== generation) return;
+  }
+
+  const first = main.getBoundingClientRect();
+  clearMotion();
+  nav.setAttribute('data-strip', String(show));
+  const last = main.getBoundingClientRect();
+  const dx = first.left - last.left;
+  if (!dx) return;
+
+  const timing: KeyframeAnimationOptions = { duration: slow, easing: easeOut };
+  running.push(main.animate([{ transform: `translateX(${dx}px)` }, { transform: 'none' }], timing));
+  if (show && stripShown()) {
+    // Slides out from behind the Menu pill
+    running.push(
+      strip.animate(
+        [
+          { transform: `translateX(${dx - (strip.getBoundingClientRect().left - last.left)}px)`, opacity: 0 },
+          { transform: 'none', opacity: 1 },
+        ],
+        timing,
+      ),
+    );
+  }
+}
+
 /** Re-syncs persistent nav state with the page at `path` after a Barba transition. */
 export function syncNav(path: string): void {
   if (!nav) return;
   const normalized = normalizePath(path);
-  const isWork = normalized === '/' || normalized.startsWith('/work/');
-  nav.setAttribute('data-strip', String(isWork));
+  if (nav.dataset.strip !== String(isWorkPath(path))) void transitionStrip(path);
 
   menu?.querySelectorAll<HTMLAnchorElement>('a[data-nav-link]').forEach((link) => {
     const url = new URL(link.href, location.href);

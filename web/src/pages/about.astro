@@ -9,9 +9,10 @@ const about = await getAbout();
 const siteSettings = await getSiteSettings();
 ---
 <BaseLayout
-  title={`About — ${siteSettings.defaultSeo.title}`}
-  description={siteSettings.defaultSeo.description}
+  title={`${about.seo?.title || 'About'} — ${siteSettings.defaultSeo.title}`}
+  description={about.seo?.description || siteSettings.defaultSeo.description}
   canonicalPath="/about"
+  ogImage={about.seo?.ogImage?.url}
   bodyClass="theme-blue"
 >
   <Nav slot="nav" />
@@ -33,11 +34,7 @@ const siteSettings = await getSiteSettings();
     </div>
 
     <div class="about__cards">
-      <ContactCard
-        email={siteSettings.contactEmail}
-        timeZone={siteSettings.timeZone}
-        label={siteSettings.navLabels.contact}
-      />
+      <ContactCard email={siteSettings.contactEmail} />
       {about.resumeUrl && <DownloadCard href={about.resumeUrl} />}
     </div>
 

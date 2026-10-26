@@ -5,10 +5,12 @@ import mailIcon from '../assets/icons/mail.svg?url';
 
 interface Props {
   email: string;
-  timeZone: string;
   label?: string;
 }
-const { email, timeZone, label = 'Contact' } = Astro.props;
+const { email, label = 'Contact' } = Astro.props;
+
+/** The clock always shows Rayane's local time. */
+const timeZone = 'Europe/Lisbon';
 ---
 <div class="contact-card">
   <div class="contact-card__row">
