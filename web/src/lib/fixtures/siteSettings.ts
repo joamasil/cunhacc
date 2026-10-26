@@ -12,7 +12,7 @@ export const siteSettings: SiteSettings = {
   contactEmail: 'hello@example.com',
   timeZone: 'Europe/Lisbon',
   defaultSeo: {
-    title: 'Joana Cunha — Portfolio',
+    title: 'cunha.cc',
     description: 'Design & development portfolio.',
     ogImage: {
       url: 'https://placehold.co/1200x630',
