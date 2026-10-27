@@ -15,48 +15,48 @@ interface Props {
   project: Project;
 }
 const { project } = Astro.props;
+const { intro, more } = project.description;
+
+// "Read more +" sits inline at the end of the intro's last paragraph, as in Figma
+const toggle =
+  '<button type="button" class="project-panel__more-toggle" data-read-more aria-controls="project-more" aria-expanded="false">Read more +</button>';
+const introHtml = more ? (/<\/p>\s*$/.test(intro) ? intro.replace(/<\/p>\s*$/, ` ${toggle}</p>`) : `${intro} ${toggle}`) : intro;
 ---
 <article class="project-panel" data-panel aria-labelledby="project-title">
-  <!-- Pinned to the panel corner, outside the scroller -->
+  <!-- Pinned to the panel corner, outside the scrolling columns -->
   <div class="project-panel__close" data-panel-close>
     <IconButton href="/" label="Close project" icon={closeIcon} size="lg" data-project-close />
   </div>
 
-  <div class="project-panel__scroller" data-panel-scroller>
-    <div class="project-panel__content" data-panel-content>
-      <div class="project-panel__media">
-        {project.gallery.map((media, index) => (
-          <div class="project-panel__media-item" style={`--project-color: ${project.color}`}>
-            <ProjectMedia media={media} priority={index === 0} />
-          </div>
-        ))}
-      </div>
-
-      <div class="project-panel__info">
-        <div class="project-panel__details">
-          <header class="project-panel__synopsis">
-            <div class="project-panel__heading">
-              <h1 id="project-title" class="project-panel__title">{project.title}</h1>
-              <p class="project-panel__industry">{project.industry}</p>
-            </div>
-            <div class="project-panel__description">
-              <Fragment set:html={project.description.intro} />
-              {project.description.more && (
-                <details class="project-panel__more">
-                  <summary>Read more</summary>
-                  <div class="project-panel__more-text" set:html={project.description.more} />
-                </details>
-              )}
-            </div>
-            <TagList tags={project.tags} />
-          </header>
-
-          {project.infoBlocks.length > 0 && (
-            <div class="project-panel__blocks">
-              {project.infoBlocks.map((block) => <InfoBlock block={block} />)}
-            </div>
-          )}
+  <!-- Gallery and info scroll independently ([data-panel-scroll], scripts/project-panel.ts) -->
+  <div class="project-panel__content" data-panel-content>
+    <div class="project-panel__media" data-panel-scroll>
+      {project.gallery.map((media, index) => (
+        <div class:list={['project-panel__media-item', media.ratio === '1:1' && `project-panel__media-item--square-${media.align}`]}>
+          <ProjectMedia media={media} priority={index === 0} />
         </div>
+      ))}
+    </div>
+
+    <div class="project-panel__info" data-panel-scroll>
+      <div class="project-panel__details">
+        <header class="project-panel__synopsis">
+          <div class="project-panel__heading">
+            <h1 id="project-title" class="project-panel__title">{project.title}</h1>
+            <p class="project-panel__industry">{project.industry}</p>
+          </div>
+          <div class="project-panel__description">
+            <Fragment set:html={introHtml} />
+            {more && <div id="project-more" class="project-panel__more-text" set:html={more} hidden />}
+          </div>
+          <TagList tags={project.tags} />
+        </header>
+
+        {project.infoBlocks.length > 0 && (
+          <div class="project-panel__blocks">
+            {project.infoBlocks.map((block) => <InfoBlock block={block} />)}
+          </div>
+        )}
       </div>
     </div>
   </div>
@@ -75,23 +75,27 @@ const { project } = Astro.props;
     background: var(--surface-solid);
   }
 
-  .project-panel__scroller {
-    height: 100%;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: none; /* still scrollable — wheel, trackpad, keyboard */
-  }
-
-  .project-panel__scroller::-webkit-scrollbar {
-    display: none;
-  }
-
   .project-panel__content {
     display: grid;
     grid-template-columns: minmax(0, 785fr) minmax(0, 459fr);
     column-gap: calc(var(--space-xxlg) * 2);
-    align-items: start;
-    padding: var(--space-md);
+    height: 100%;
+    padding-inline: var(--space-md);
+  }
+
+  /* Each column scrolls on its own; padding sits inside so content scrolls to the panel edge */
+  .project-panel__media,
+  .project-panel__info {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    padding-block: var(--space-md);
+  }
+
+  .project-panel__media::-webkit-scrollbar,
+  .project-panel__info::-webkit-scrollbar {
+    display: none;
   }
 
   .project-panel__media {
@@ -101,10 +105,21 @@ const { project } = Astro.props;
   }
 
   .project-panel__media-item {
+    flex-shrink: 0; /* keep the ratio; the column scrolls instead */
     aspect-ratio: 16 / 9;
     overflow: hidden;
     border-radius: var(--radius-md);
-    background: var(--project-color);
+  }
+
+  /* 1:1 items: half the column, on the side picked in the Studio */
+  .project-panel__media-item--square-left,
+  .project-panel__media-item--square-right {
+    width: calc((100% - var(--space-sm)) / 2);
+    aspect-ratio: 1;
+  }
+
+  .project-panel__media-item--square-right {
+    align-self: flex-end;
   }
 
   .project-panel__close {
@@ -115,9 +130,7 @@ const { project } = Astro.props;
   }
 
   .project-panel__info {
-    position: sticky;
-    top: 0;
-    padding-top: 40px; /* height of the pinned close button (IconButton size="lg"), as in Figma */
+    padding-top: calc(var(--space-md) + 40px); /* clears the pinned close button (IconButton size="lg"), as in Figma */
   }
 
   .project-panel__details {
@@ -162,26 +175,25 @@ const { project } = Astro.props;
     margin: 0;
   }
 
-  /* Native <details>: no script, survives page transitions; the toggle disappears once open */
-  .project-panel__more summary {
-    width: fit-content;
-    list-style: none;
+  .project-panel__more-text[hidden] {
+    display: none;
+  }
+
+  /* Injected into the intro HTML, so styled globally; removed once clicked (scripts/project-panel.ts) */
+  .project-panel__description :global(.project-panel__more-toggle) {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: var(--body-md-weight-semibold);
+    color: var(--color-pink);
     cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
-  }
-
-  .project-panel__more summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .project-panel__more[open] summary {
-    display: none;
   }
 
   @media (hover: hover) {
-    .project-panel__more summary:hover {
-      color: var(--color-pink);
+    .project-panel__description :global(.project-panel__more-toggle:hover) {
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
     }
   }
 
@@ -197,13 +209,21 @@ const { project } = Astro.props;
 
   /* Desktop-first for now: stack the columns on narrow screens */
   @media (max-width: 1023px) {
+    /* One scroll for the whole stacked panel */
     .project-panel__content {
       grid-template-columns: minmax(0, 1fr);
       row-gap: var(--space-xlg);
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .project-panel__media,
+    .project-panel__info {
+      height: auto;
+      overflow: visible;
     }
 
     .project-panel__info {
-      position: static;
       order: -1;
     }
   }

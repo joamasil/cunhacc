@@ -1,0 +1,9 @@
+# Built from the repo root so npm workspaces install correctly; only web/ is deployed.
+[build]
+  command = "npm run build"
+  publish = "web/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  PUBLIC_SANITY_PROJECT_ID = "h0wa9qk5"
+  PUBLIC_SANITY_DATASET = "production"

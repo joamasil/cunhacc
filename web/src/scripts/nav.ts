@@ -20,6 +20,8 @@ const thumbItems = () => Array.from(strip?.querySelectorAll<HTMLElement>('[data-
 const links = () => Array.from(menu?.querySelectorAll<HTMLElement>('[data-nav-link]') ?? []);
 const normalizePath = (path: string) => path.replace(/\/$/, '') || '/';
 const stripShown = () => !!strip && getComputedStyle(strip).display !== 'none';
+// The open/close choreography is desktop only; the mobile panel just switches
+const animatesBar = () => window.matchMedia('(min-width: 1024px)').matches;
 
 function applyOpen(open: boolean): void {
   nav?.setAttribute('data-open', String(open));
@@ -67,15 +69,16 @@ function clearMotion(): void {
 }
 
 /**
- * Desktop strip choreography (FLIP): the Menu pill grows into the link row
- * over the strip, the active thumbnail slides to the right end, and the other
- * thumbnails fade out where they stood. Closing plays it backwards.
+ * Desktop choreography (FLIP): the Menu pill grows into the link row and the
+ * links fade in. With the strip shown (work pages), the active thumbnail also
+ * slides to the right end and the others fade out where they stood. Closing
+ * plays it backwards.
  */
 async function animateBar(open: boolean): Promise<void> {
   if (!main || !strip) return;
   const run = ++generation;
   const { fast, base, slow, easeOut } = motion();
-  const items = thumbItems();
+  const items = stripShown() ? thumbItems() : [];
   const active = items.find((item) => item.dataset.active === 'true');
   const others = items.filter((item) => item !== active);
 
@@ -190,7 +193,7 @@ async function animateBar(open: boolean): Promise<void> {
 
 export function setNavOpen(open: boolean): Promise<void> {
   if (!nav || isOpen() === open) return Promise.resolve();
-  if (!stripShown()) {
+  if (!animatesBar()) {
     generation++;
     clearMotion();
     applyOpen(open);

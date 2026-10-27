@@ -60,7 +60,6 @@ const links = [
             data-slug={project.slug}
             aria-label={project.title}
             aria-current={project.slug === activeSlug ? 'true' : undefined}
-            style={`--project-color: ${project.color}`}
           >
             <img
               class="site-nav__thumb-image"
@@ -218,7 +217,6 @@ const links = [
     height: 40px;
     overflow: hidden;
     border-radius: var(--radius-xs);
-    background: var(--project-color);
   }
 
   .site-nav__thumb::after {

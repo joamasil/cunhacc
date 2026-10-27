@@ -9,10 +9,10 @@ const about = await getAbout();
 const siteSettings = await getSiteSettings();
 ---
 <BaseLayout
-  title={`${about.seo?.title || 'About'} — ${siteSettings.defaultSeo.title}`}
-  description={about.seo?.description || siteSettings.defaultSeo.description}
+  title={`${about.seo.title} — ${siteSettings.defaultSeo.title}`}
+  description={about.seo.description}
   canonicalPath="/about"
-  ogImage={about.seo?.ogImage?.url}
+  ogImage={about.seo.ogImage?.url ?? siteSettings.defaultSeo.ogImage?.url}
   bodyClass="theme-blue"
 >
   <Nav slot="nav" />

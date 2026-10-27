@@ -3,25 +3,24 @@ import type { GetStaticPaths } from 'astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Nav from '../../components/Nav.astro';
 import ProjectPanel from '../../components/ProjectPanel.astro';
-import { getProjects, getSiteSettings } from '../../lib/content';
-import type { Project } from '../../lib/types';
+import { getProjectBySlug, getProjects, getSiteSettings } from '../../lib/content';
 
 export const getStaticPaths = (async () => {
   const projects = await getProjects();
-  return projects.map((project) => ({ params: { slug: project.slug }, props: { project } }));
+  return projects.map((project) => ({ params: { slug: project.slug } }));
 }) satisfies GetStaticPaths;
 
-interface Props {
-  project: Project;
-}
-const { project } = Astro.props;
+// Fetched here rather than passed as props: the dev server caches getStaticPaths,
+// so props would go stale after an edit in Sanity
+const project = await getProjectBySlug(Astro.params.slug);
+if (!project) return Astro.redirect('/');
 const { defaultSeo } = await getSiteSettings();
 const ogImage =
-  project.seo?.ogImage?.url ?? (project.cover.type === 'image' ? project.cover.url : project.thumbnail.url);
+  project.seo.ogImage?.url ?? (project.cover.type === 'image' ? project.cover.url : project.thumbnail.url);
 ---
 <BaseLayout
-  title={`${project.seo?.title || project.title} — ${defaultSeo.title}`}
-  description={project.seo?.description || project.excerpt}
+  title={`${project.seo.title} — ${defaultSeo.title}`}
+  description={project.seo.description}
   canonicalPath={`/work/${project.slug}`}
   ogImage={ogImage}
   bodyClass="theme-work"
