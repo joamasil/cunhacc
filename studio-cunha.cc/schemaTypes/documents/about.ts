@@ -2,7 +2,7 @@ import {defineArrayMember, defineField, defineType} from 'sanity'
 import {UserIcon} from '@sanity/icons/User'
 import {seoFields} from '../fields/seo'
 
-/** Singleton — the About page. */
+/** Singleton: the About page. */
 export const about = defineType({
   name: 'about',
   type: 'document',
@@ -27,12 +27,19 @@ export const about = defineType({
         }),
       ],
     }),
-    defineField({name: 'portrait', group: 'content', type: 'accessibleImage', validation: (rule) => rule.required()}),
+    defineField({
+      name: 'portrait',
+      group: 'content',
+      type: 'accessibleImage',
+      description: 'Under 1 MB.',
+      validation: (rule) => rule.required(),
+    }),
     defineField({
       group: 'content',
       name: 'resume',
-      title: 'CV (PDF)',
+      title: 'CV',
       type: 'file',
+      description: 'PDF, under 5 MB.',
       options: {accept: 'application/pdf'},
     }),
     defineField({
@@ -83,15 +90,14 @@ export const about = defineType({
               name: 'icons',
               type: 'array',
               description: 'Small icons shown inside the tag.',
-              of: [defineArrayMember({type: 'accessibleImage'})],
+              of: [defineArrayMember({type: 'accessibleImage', description: 'SVG, or under 50 KB.'})],
             }),
           ],
           preview: {select: {title: 'label', media: 'icons.0'}},
         }),
       ],
     }),
-    defineField({name: 'socialLinks', group: 'content', type: 'array', of: [defineArrayMember({type: 'socialLink'})]}),
-    ...seoFields({titleHint: 'Defaults to "About". The site name is added after it.'}),
+    ...seoFields({titleHint: 'Usually "About". The site name is added after it.'}),
   ],
   preview: {prepare: () => ({title: 'About'})},
 })

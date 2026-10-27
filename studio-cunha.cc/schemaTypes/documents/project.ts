@@ -25,7 +25,7 @@ export const project = defineType({
       name: 'slug',
       type: 'slug',
       group: 'info',
-      description: 'cunha.cc/work/<slug>',
+      description: 'For the URL: cunha.cc/work/<slug>',
       options: {source: 'title', maxLength: 96},
       validation: (rule) => rule.required(),
     }),
@@ -48,7 +48,7 @@ export const project = defineType({
       name: 'thumbnail',
       type: 'accessibleImage',
       group: 'cover',
-      description: 'Small image in the bottom project strip.',
+      description: 'Small image in the bottom project strip. Under 300 KB.',
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -62,8 +62,7 @@ export const project = defineType({
       name: 'description',
       type: 'array',
       group: 'details',
-      description:
-        'Insert a "Read more" break to choose what shows first — the rest opens on click. The text above it is the fallback for the meta description.',
+      description: 'Insert a "Read more" break to choose what shows first. The rest opens on click.',
       of: [
         defineArrayMember({
           type: 'block',
@@ -85,10 +84,10 @@ export const project = defineType({
       name: 'infoBlocks',
       type: 'array',
       group: 'details',
-      description: 'Credits, Client, Awards… add and reorder blocks freely.',
+      description: 'Credits, Client, Awards… Add and reorder blocks freely.',
       of: [defineArrayMember({type: 'infoBlock'})],
     }),
-    ...seoFields({titleHint: 'Defaults to the project title. The site name is added after it.'}),
+    ...seoFields({titleHint: 'Usually the project title. The site name is added after it.'}),
     // Hidden rank set by dragging projects in the Studio list
     orderRankField({type: 'project'}),
   ],

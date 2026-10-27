@@ -1,8 +1,8 @@
-import {defineArrayMember, defineField, defineType} from 'sanity'
+import {defineField, defineType} from 'sanity'
 import {CogIcon} from '@sanity/icons/Cog'
 import {seoFields} from '../fields/seo'
 
-/** Singleton — site-wide settings. */
+/** Singleton: site-wide settings. */
 export const siteSettings = defineType({
   name: 'siteSettings',
   title: 'Site settings',
@@ -26,14 +26,8 @@ export const siteSettings = defineType({
       type: 'url',
       group: 'navigation',
     }),
-    defineField({
-      name: 'socialLinks',
-      type: 'array',
-      group: 'general',
-      of: [defineArrayMember({type: 'socialLink'})],
-    }),
-    // Site-wide defaults for pages that leave their own SEO fields empty
-    ...seoFields({required: true, titleHint: 'Site name — the home page title and the suffix on every other page title.'}),
+    // Home page SEO; the OG image is also the share image for pages without one
+    ...seoFields({titleHint: 'Site name. The home page title and the suffix on every other page title.'}),
   ],
   preview: {prepare: () => ({title: 'Site settings'})},
 })

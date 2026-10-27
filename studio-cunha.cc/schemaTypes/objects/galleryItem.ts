@@ -1,6 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {ImagesIcon} from '@sanity/icons/Images'
-import {projectMedia} from './projectMedia'
+import {mediaFields} from './projectMedia'
 
 type GalleryParent = {kind?: string; ratio?: string}
 
@@ -60,11 +60,14 @@ export const galleryItem = defineType({
       validation: (rule) => rule.required(),
     }),
     // Image, video and poster fields are shared with the cover
-    ...projectMedia.fields.filter((field) => field.name !== 'kind'),
+    ...mediaFields({
+      imageSize: 'Under 1 MB.',
+      videoSize: 'Under 5 MB.',
+    }),
     defineField({
       name: 'lottie',
       type: 'file',
-      description: 'Lottie animation exported as .json.',
+      description: 'Lottie animation exported as .json, under 500 KB.',
       options: {accept: 'application/json,.json'},
       hidden: ({parent}) => parent?.kind !== 'lottie',
       validation: (rule) =>
@@ -74,7 +77,7 @@ export const galleryItem = defineType({
     }),
     defineField({
       name: 'alt',
-      title: 'Alternative text',
+      title: 'Alt text',
       type: 'string',
       description: 'Describe the animation for screen readers.',
       hidden: ({parent}) => parent?.kind !== 'lottie',

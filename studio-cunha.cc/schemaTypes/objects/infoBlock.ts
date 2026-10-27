@@ -34,10 +34,12 @@ export const infoBlock = defineType({
     defineField({
       name: 'rows',
       type: 'array',
+      description: 'Each row is a label and its value, with an optional link. Line breaks in the value show as separate lines.',
       hidden: ({parent}) => parent?.kind === 'images',
       of: [
         defineArrayMember({
           name: 'infoRow',
+          title: 'Row',
           type: 'object',
           fields: [
             defineField({name: 'label', type: 'string', validation: (rule) => rule.required()}),
@@ -45,14 +47,13 @@ export const infoBlock = defineType({
               name: 'value',
               type: 'text',
               rows: 2,
-              description: 'Each line shows on its own line.',
               validation: (rule) => rule.required(),
             }),
             defineField({
               name: 'href',
               title: 'Link',
               type: 'url',
-              description: 'Optional — makes the value a link.',
+              description: 'Optional. Makes the value a link.',
             }),
           ],
           preview: {select: {title: 'label', subtitle: 'value'}},
@@ -64,7 +65,7 @@ export const infoBlock = defineType({
       type: 'array',
       description: 'Shown side by side, in this order. SVGs work best for logos and badges.',
       hidden: ({parent}) => parent?.kind !== 'images',
-      of: [defineArrayMember({type: 'accessibleImage'})],
+      of: [defineArrayMember({type: 'accessibleImage', description: 'SVG, or under 200 KB.'})],
       options: {layout: 'grid'},
     }),
   ],

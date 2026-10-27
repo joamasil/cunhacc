@@ -1,10 +1,9 @@
 import {defineConfig} from 'sanity'
 import {structureTool} from 'sanity/structure'
-import {visionTool} from '@sanity/vision'
 import {schemaTypes, singletonTypes} from './schemaTypes'
 import {structure} from './structure'
 
-// Singletons can't be created, duplicated or deleted — only edited and published.
+// Singletons can't be created, duplicated or deleted, only edited and published.
 const singletonActions = new Set(['publish', 'discardChanges', 'restore'])
 
 export default defineConfig({
@@ -14,7 +13,7 @@ export default defineConfig({
   projectId: 'h0wa9qk5',
   dataset: 'production',
 
-  plugins: [structureTool({structure}), visionTool()],
+  plugins: [structureTool({structure})],
 
   schema: {
     types: schemaTypes,

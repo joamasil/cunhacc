@@ -6,7 +6,6 @@ import {galleryItem} from './objects/galleryItem'
 import {infoBlock} from './objects/infoBlock'
 import {projectMedia} from './objects/projectMedia'
 import {readMoreBreak} from './objects/readMoreBreak'
-import {socialLink} from './objects/socialLink'
 
 export const schemaTypes = [
   // Documents
@@ -19,7 +18,6 @@ export const schemaTypes = [
   galleryItem,
   readMoreBreak,
   infoBlock,
-  socialLink,
 ]
 
 /** Document types that exist exactly once (fixed IDs, see structure.ts). */

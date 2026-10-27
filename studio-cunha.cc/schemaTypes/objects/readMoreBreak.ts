@@ -12,5 +12,5 @@ export const readMoreBreak = defineType({
   icon: SplitVerticalIcon,
   // Objects need at least one field; this one is never edited
   fields: [defineField({name: 'marker', type: 'boolean', hidden: true, initialValue: true})],
-  preview: {prepare: () => ({title: '— Read more —'})},
+  preview: {prepare: () => ({title: 'Read more break', subtitle: 'Text below this opens on click'})},
 })

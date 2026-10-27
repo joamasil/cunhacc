@@ -2,20 +2,17 @@ import {defineField} from 'sanity'
 
 /**
  * Meta title, meta description and OG image, placed straight into a
- * document's "SEO" tab. Pages leave them optional (empty falls back to the
- * page content, then Site settings); Site settings requires them as the defaults.
+ * document's "SEO" tab. Title and description are required on every page;
+ * the OG image falls back to the one in Site settings.
  */
-export const seoFields = ({required = false, titleHint}: {required?: boolean; titleHint: string}) => [
+export const seoFields = ({titleHint}: {titleHint: string}) => [
   defineField({
     name: 'metaTitle',
     title: 'Meta title',
     type: 'string',
     group: 'seo',
-    description: titleHint,
-    validation: (rule) => {
-      const limit = rule.max(60).warning('Search results cut off around 60 characters')
-      return required ? [rule.required(), limit] : limit
-    },
+    description: `${titleHint} Max 60 characters.`,
+    validation: (rule) => [rule.required(), rule.max(60).warning('Search results cut off around 60 characters')],
   }),
   defineField({
     name: 'metaDescription',
@@ -23,11 +20,8 @@ export const seoFields = ({required = false, titleHint}: {required?: boolean; ti
     type: 'text',
     rows: 2,
     group: 'seo',
-    description: 'Shown in search results and link previews.',
-    validation: (rule) => {
-      const limit = rule.max(160).warning('Search results cut off around 160 characters')
-      return required ? [rule.required(), limit] : limit
-    },
+    description: 'Shown in search results and link previews. Max 160 characters.',
+    validation: (rule) => [rule.required(), rule.max(160).warning('Search results cut off around 160 characters')],
   }),
   defineField({
     name: 'ogImage',
@@ -35,6 +29,6 @@ export const seoFields = ({required = false, titleHint}: {required?: boolean; ti
     // Plain image: share previews don't read alt text, so no alt field here
     type: 'image',
     group: 'seo',
-    description: 'Shown when the page is shared. 1200 × 630 px works best.',
+    description: 'Shown when the page is shared. 1200 × 630 px, under 1 MB.',
   }),
 ]
