@@ -1,0 +1,63 @@
+---
+import type { ProjectMedia as Media } from '../lib/types';
+import ProjectMedia from './ProjectMedia.astro';
+
+/**
+ * A project's full-screen cover, swapping to the mobile cover below the
+ * desktop breakpoint when the project has one. Two images become one
+ * <picture> so only the right file downloads; with a video involved both are
+ * rendered and CSS shows one (the slider only plays visible videos).
+ */
+interface Props {
+  cover: Media;
+  coverMobile?: Media;
+  /** Eager-load (first slide). */
+  priority?: boolean;
+}
+const { cover, coverMobile, priority = false } = Astro.props;
+const MOBILE = '(max-width: 1023px)';
+---
+{!coverMobile ? (
+  <ProjectMedia media={cover} priority={priority} />
+) : cover.type === 'image' && coverMobile.type === 'image' ? (
+  <picture>
+    <source media={MOBILE} srcset={coverMobile.url} width={coverMobile.width} height={coverMobile.height} />
+    <img
+      class="cover-media"
+      src={cover.url}
+      alt={cover.alt}
+      width={cover.width}
+      height={cover.height}
+      loading={priority ? 'eager' : 'lazy'}
+      decoding="async"
+    />
+  </picture>
+) : (
+  <>
+    <ProjectMedia media={coverMobile} class="cover-media--mobile" />
+    <ProjectMedia media={cover} class="cover-media--desktop" />
+  </>
+)}
+
+<style>
+  .cover-media {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  :global(.cover-media--desktop) {
+    display: none !important;
+  }
+
+  @media (min-width: 1024px) {
+    :global(.cover-media--mobile) {
+      display: none !important;
+    }
+
+    :global(.cover-media--desktop) {
+      display: block !important;
+    }
+  }
+</style>

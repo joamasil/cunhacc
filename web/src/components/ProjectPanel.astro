@@ -207,24 +207,48 @@ const introHtml = more ? (/<\/p>\s*$/.test(intro) ? intro.replace(/<\/p>\s*$/, `
     gap: var(--space-lg);
   }
 
-  /* Desktop-first for now: stack the columns on narrow screens */
+  /* Mobile (Figma 178:41302): one column that scrolls as a whole — synopsis,
+     gallery, then the info blocks. The info wrappers dissolve (display: contents)
+     so the gallery can sit between the synopsis and the blocks. */
   @media (max-width: 1023px) {
-    /* One scroll for the whole stacked panel */
+    .project-panel {
+      bottom: calc(var(--nav-bottom) + var(--nav-height) + 2rem);
+    }
+
     .project-panel__content {
-      grid-template-columns: minmax(0, 1fr);
-      row-gap: var(--space-xlg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xxlg);
+      padding: calc(var(--space-md) * 2 + 40px) var(--space-md) var(--space-md); /* clears the close button */
       overflow-y: auto;
+      overscroll-behavior: contain;
       scrollbar-width: none;
     }
 
-    .project-panel__media,
-    .project-panel__info {
-      height: auto;
-      overflow: visible;
+    .project-panel__content::-webkit-scrollbar {
+      display: none;
     }
 
-    .project-panel__info {
-      order: -1;
+    .project-panel__info,
+    .project-panel__details {
+      display: contents;
+    }
+
+    .project-panel__media {
+      order: 1;
+      height: auto;
+      overflow: visible;
+      padding: 0;
+      gap: var(--space-xsm);
+    }
+
+    .project-panel__blocks {
+      order: 2;
+    }
+
+    .project-panel__media-item--square-left,
+    .project-panel__media-item--square-right {
+      width: 56.25%;
     }
   }
 </style>

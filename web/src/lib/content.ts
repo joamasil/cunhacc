@@ -26,6 +26,7 @@ const PROJECTS_QUERY = defineQuery(`*[_type == "project" && defined(slug.current
   description,
   tags,
   cover${MEDIA},
+  coverMobile${MEDIA},
   thumbnail${IMAGE},
   gallery[]{ ratio, align, ${MEDIA_FIELDS} },
   infoBlocks[]{ kind, title, rows[]{ label, value, href }, images[]${IMAGE} },
@@ -74,6 +75,7 @@ interface RawProject {
   description: RawBlock[] | null;
   tags: string[] | null;
   cover: RawMedia;
+  coverMobile: RawMedia | null;
   thumbnail: RawImage;
   gallery: (RawMedia & { ratio: GalleryItem['ratio'] | null; align: GalleryItem['align'] | null })[] | null;
   infoBlocks:
@@ -153,6 +155,8 @@ function mapProject(raw: RawProject, order: number): Project {
     description: mapDescription(raw.description ?? []),
     tags: raw.tags ?? [],
     cover,
+    // Phones are narrow, so 1290px (430pt @3x) is plenty
+    coverMobile: (raw.coverMobile && mapMedia(raw.coverMobile, 1290)) ?? undefined,
     thumbnail: mapImage(raw.thumbnail, 600),
     gallery: (raw.gallery ?? []).flatMap((item): GalleryItem[] => {
       const media = mapMedia(item, 1920);

@@ -45,7 +45,8 @@ export function initWorkSlider(root: ParentNode = document): void {
       slide.dataset.active = String(active);
       slide.setAttribute('aria-hidden', String(!active));
       slide.querySelectorAll<HTMLVideoElement>('[data-media-video]').forEach((video) => {
-        if (active) void video.play().catch(() => undefined);
+        // Hidden ones are the other breakpoint's cover (CoverMedia)
+        if (active && video.getClientRects().length > 0) void video.play().catch(() => undefined);
         else video.pause();
       });
     });

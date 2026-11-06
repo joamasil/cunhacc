@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Nav from '../components/Nav.astro';
 import ProjectInfoCard from '../components/ProjectInfoCard.astro';
-import ProjectMedia from '../components/ProjectMedia.astro';
+import CoverMedia from '../components/CoverMedia.astro';
 import { getProjects, getSiteSettings } from '../lib/content';
 
 const projects = await getProjects();
@@ -29,7 +29,7 @@ const { defaultSeo } = await getSiteSettings();
         aria-label={`${index + 1} of ${projects.length}: ${project.title}`}
         aria-hidden={index === 0 ? undefined : 'true'}
       >
-        <ProjectMedia media={project.cover} priority={index === 0} />
+        <CoverMedia cover={project.cover} coverMobile={project.coverMobile} priority={index === 0} />
       </div>
     ))}
   </section>

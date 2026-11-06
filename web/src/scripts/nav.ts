@@ -11,11 +11,13 @@ let main: HTMLElement | null = null;
 let toggle: HTMLButtonElement | null = null;
 let menu: HTMLElement | null = null;
 let strip: HTMLElement | null = null;
+let projectsToggle: HTMLButtonElement | null = null;
 let running: Animation[] = [];
 let ghosts: HTMLElement[] = [];
 let generation = 0;
 
 const isOpen = () => menu?.getAttribute('data-open') === 'true';
+const isProjectsOpen = () => nav?.dataset.projectsOpen === 'true';
 const thumbItems = () => Array.from(strip?.querySelectorAll<HTMLElement>('[data-thumb-item]') ?? []);
 const links = () => Array.from(menu?.querySelectorAll<HTMLElement>('[data-nav-link]') ?? []);
 const normalizePath = (path: string) => path.replace(/\/$/, '') || '/';
@@ -191,19 +193,118 @@ async function animateBar(open: boolean): Promise<void> {
   releaseLayout();
 }
 
+function applyProjectsOpen(open: boolean): void {
+  nav?.setAttribute('data-projects-open', String(open));
+  projectsToggle?.setAttribute('aria-expanded', String(open));
+}
+
+/** clip-path that crops `outer` down to the `inner` rectangle. */
+function clipTo(inner: DOMRect, outer: DOMRect, radius: string): string {
+  return `inset(${inner.top - outer.top}px ${outer.right - inner.right}px ${outer.bottom - inner.bottom}px ${inner.left - outer.left}px round ${radius})`;
+}
+
+/**
+ * Mobile: the Menu and "All projects" panels each replace the bar while open.
+ * Opening one slides the other pill off its side of the screen, then the pill
+ * grows into the panel (a clip-path reveal, so nothing reflows) and its
+ * contents fade in. Closing plays it backwards.
+ */
+async function switchPanel(
+  apply: (open: boolean) => void,
+  pill: HTMLElement | null,
+  other: HTMLElement | null,
+  side: -1 | 1,
+  open: boolean,
+): Promise<void> {
+  const run = ++generation;
+  const { fast, base, slow, easeOut, easeInOut } = motion();
+  const offscreen = (element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    return side < 0 ? -rect.right : window.innerWidth - rect.left;
+  };
+  const shown = (element: HTMLElement | null): element is HTMLElement =>
+    !!element && getComputedStyle(element).display !== 'none';
+  const contents = Array.from(pill?.children ?? []);
+  const radius = pill ? getComputedStyle(pill).borderTopLeftRadius : '0px';
+
+  if (open) {
+    if (shown(other)) {
+      const out = other.animate([{ transform: 'none' }, { transform: `translateX(${offscreen(other)}px)` }], {
+        duration: fast,
+        easing: 'ease-in',
+        fill: 'forwards',
+      });
+      running.push(out);
+      await settled([out]);
+      if (run !== generation) return;
+    }
+
+    const closed = pill?.getBoundingClientRect();
+    clearMotion();
+    apply(true);
+    if (!pill || !closed) return;
+    const opened = pill.getBoundingClientRect();
+    running.push(
+      pill.animate([{ clipPath: clipTo(closed, opened, radius) }, { clipPath: `inset(0px round ${radius})` }], {
+        duration: slow,
+        easing: easeOut,
+      }),
+      ...contents.map((element) =>
+        element.animate([{ opacity: 0 }, { opacity: 1 }], { duration: base, delay: fast, easing: easeOut, fill: 'backwards' }),
+      ),
+    );
+    return;
+  }
+
+  if (pill) {
+    // Measure the closed pill without painting it, then shrink into it
+    const opened = pill.getBoundingClientRect();
+    apply(false);
+    const closed = pill.getBoundingClientRect();
+    apply(true);
+
+    const fadeOut = contents.map((element) =>
+      element.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fast, easing: 'ease-out', fill: 'forwards' }),
+    );
+    const shrink = pill.animate(
+      [{ clipPath: `inset(0px round ${radius})` }, { clipPath: clipTo(closed, opened, radius) }],
+      { duration: base, easing: easeInOut, fill: 'forwards' },
+    );
+    running.push(...fadeOut, shrink);
+    await settled([shrink]);
+    if (run !== generation) return;
+  }
+
+  clearMotion();
+  apply(false);
+  if (pill) {
+    // The closed pill's label fades back in where the panel shrank to
+    running.push(...contents.map((element) => element.animate([{ opacity: 0 }, { opacity: 1 }], { duration: fast, easing: 'ease-out' })));
+  }
+  if (shown(other)) {
+    running.push(
+      other.animate([{ transform: `translateX(${offscreen(other)}px)` }, { transform: 'none' }], {
+        duration: slow,
+        easing: easeOut,
+      }),
+    );
+  }
+}
+
 export function setNavOpen(open: boolean): Promise<void> {
   if (!nav || isOpen() === open) return Promise.resolve();
-  if (!animatesBar()) {
-    generation++;
-    clearMotion();
-    applyOpen(open);
-    return Promise.resolve();
-  }
+  if (!animatesBar()) return switchPanel(applyOpen, main, strip, 1, open);
   return animateBar(open);
 }
 
-export function closeNav(): Promise<void> {
-  return setNavOpen(false);
+/** Mobile "All projects" dropdown (its toggle is hidden on desktop). */
+export function setProjectsOpen(open: boolean): Promise<void> {
+  if (!nav || isProjectsOpen() === open) return Promise.resolve();
+  return switchPanel(applyProjectsOpen, strip, main, -1, open);
+}
+
+export async function closeNav(): Promise<void> {
+  await Promise.all([setNavOpen(false), setProjectsOpen(false)]);
 }
 
 /** Marks the project at `index` as current in the strip. */
@@ -295,7 +396,15 @@ export function initNav(root: ParentNode = document): void {
   toggle = root.querySelector<HTMLButtonElement>('[data-nav-toggle]');
   menu = root.querySelector<HTMLElement>('[data-nav-menu]');
   strip = root.querySelector<HTMLElement>('[data-nav-strip]');
+  projectsToggle = root.querySelector<HTMLButtonElement>('[data-projects-toggle]');
   if (!nav || !toggle || !menu) return;
+
+  projectsToggle?.addEventListener('click', () => void setProjectsOpen(!isProjectsOpen()));
+
+  // On the slider a thumbnail just switches slides, so close the dropdown to show it
+  strip?.addEventListener('click', (event) => {
+    if ((event.target as Element | null)?.closest('[data-thumb]')) void setProjectsOpen(false);
+  });
 
   toggle.addEventListener('click', () => {
     const open = !isOpen();
@@ -305,12 +414,19 @@ export function initNav(root: ParentNode = document): void {
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape' || !isOpen()) return;
-    void setNavOpen(false);
-    toggle?.focus();
+    if (event.key !== 'Escape') return;
+    if (isOpen()) {
+      void setNavOpen(false);
+      toggle?.focus();
+    } else if (isProjectsOpen()) {
+      void setProjectsOpen(false);
+      projectsToggle?.focus();
+    }
   });
 
   document.addEventListener('click', (event) => {
-    if (isOpen() && !nav?.contains(event.target as Node)) void setNavOpen(false);
+    if (nav?.contains(event.target as Node)) return;
+    if (isOpen()) void setNavOpen(false);
+    if (isProjectsOpen()) void setProjectsOpen(false);
   });
 }

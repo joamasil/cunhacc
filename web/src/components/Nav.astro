@@ -2,10 +2,11 @@
 import { getProjects, getSiteSettings } from '../lib/content';
 import menuIcon from '../assets/icons/menu.svg?url';
 import closeIcon from '../assets/icons/close.svg?url';
+import chevronIcon from '../assets/icons/chevron-down.svg?url';
 
 /**
  * Bottom bar: the "Menu" pill plus, on Work pages (home + project pages), the
- * project thumbnail strip. It sits outside the Barba container, so it persists
+ * project thumbnail strip (on mobile, an "All projects" dropdown). It sits outside the Barba container, so it persists
  * across page transitions; scripts/nav.ts keeps its state in sync.
  */
 const { figmaUrl, contactEmail } = await getSiteSettings();
@@ -22,7 +23,14 @@ const links = [
   { label: 'Contact', href: `mailto:${contactEmail}` },
 ];
 ---
-<nav class="site-nav" data-nav data-open="false" data-strip={String(showStrip)} aria-label="Main">
+<nav
+  class="site-nav"
+  data-nav
+  data-open="false"
+  data-projects-open="false"
+  data-strip={String(showStrip)}
+  aria-label="Main"
+>
   <div class="site-nav__main" data-nav-main>
     <button class="site-nav__toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="nav-menu">
       Menu
@@ -48,7 +56,17 @@ const links = [
   </div>
 
   <div class="site-nav__strip" data-nav-strip>
-    <ul class="site-nav__thumbs" aria-label="Projects">
+    <button
+      class="site-nav__toggle site-nav__projects-toggle"
+      type="button"
+      data-projects-toggle
+      aria-expanded="false"
+      aria-controls="nav-projects"
+    >
+      All projects
+      <img class="site-nav__icon" src={chevronIcon} width="20" height="20" alt="" />
+    </button>
+    <ul id="nav-projects" class="site-nav__thumbs" aria-label="Projects" data-lenis-prevent>
       {projects.map((project, index) => (
         <li class="site-nav__thumb-item" data-thumb-item data-active={String(project.slug === activeSlug)}>
           <a
@@ -141,6 +159,7 @@ const links = [
     gap: var(--space-xsm);
     min-height: 32px;
     padding: 6px 12px;
+    white-space: nowrap;
     border-radius: var(--radius-sm);
   }
 
@@ -196,9 +215,14 @@ const links = [
     outline-offset: -2px;
   }
 
-  /* Project strip — desktop Work pages only */
+  /* Project strip — Work pages only. A thumbnail row on desktop, an
+     "All projects" dropdown on mobile (see the mobile block below). */
   .site-nav__strip {
     display: none;
+  }
+
+  .site-nav[data-strip='true'] .site-nav__strip {
+    display: block;
   }
 
   .site-nav__thumbs {
@@ -293,6 +317,65 @@ const links = [
     background: rgb(255 255 255 / 0.24);
   }
 
+  /* Mobile "All projects" dropdown (Figma 178:27564). Opening either panel
+     hides the other pill; scripts/nav.ts slides it out to the side first. */
+  @media (max-width: 1023px) {
+    .site-nav[data-open='true'] .site-nav__strip,
+    .site-nav[data-projects-open='true'] .site-nav__main {
+      display: none;
+    }
+
+    .site-nav__thumbs {
+      display: none;
+    }
+
+    .site-nav[data-projects-open='true'] {
+      left: var(--grid-margin);
+      right: var(--grid-margin);
+      transform: none;
+    }
+
+    .site-nav[data-projects-open='true'] .site-nav__strip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-md);
+      width: 100%;
+      padding: var(--space-md) var(--space-md) var(--space-sm);
+    }
+
+    .site-nav[data-projects-open='true'] .site-nav__projects-toggle {
+      order: 1;
+    }
+
+    /* 107px = 35px from the top of the screen + the panel's padding, gap and toggle */
+    .site-nav[data-projects-open='true'] .site-nav__thumbs {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-height: calc(100dvh - var(--nav-bottom) - 107px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      border-radius: var(--radius-md);
+    }
+
+    .site-nav__thumb-item {
+      flex-shrink: 0;
+    }
+
+    .site-nav__thumb {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 60.57 / 40;
+      border-radius: 6.741px;
+    }
+
+    /* The autoplay timer only reads at strip size */
+    .site-nav__thumb-timer {
+      display: none;
+    }
+  }
+
   @media (min-width: 1024px) {
     .site-nav__toggle {
       min-height: 40px;
@@ -303,8 +386,8 @@ const links = [
       align-items: flex-start;
     }
 
-    .site-nav[data-strip='true'] .site-nav__strip {
-      display: block;
+    .site-nav__projects-toggle {
+      display: none;
     }
 
     /* Desktop open: the pill becomes a single row of links, still centered */

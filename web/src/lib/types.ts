@@ -40,6 +40,8 @@ export interface Project {
   tags: string[];
   /** Full-screen asset on the home slider. */
   cover: ProjectMedia;
+  /** Portrait cover for phones; absent when the editor left it empty. */
+  coverMobile?: ProjectMedia;
   /** Small image in the bottom project strip. */
   thumbnail: SanityImage;
   /** Media column on the project page. */

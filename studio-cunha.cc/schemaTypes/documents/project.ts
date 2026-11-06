@@ -41,8 +41,15 @@ export const project = defineType({
       name: 'cover',
       type: 'projectMedia',
       group: 'cover',
-      description: 'Full-screen asset on the home slider.',
+      description: 'Full-screen asset on the home slider (desktop, and phones without a mobile cover).',
       validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'coverMobile',
+      title: 'Mobile cover',
+      type: 'mobileCoverMedia',
+      group: 'cover',
+      description: 'Optional portrait version for phones. Leave empty to use the cover above.',
     }),
     defineField({
       name: 'thumbnail',

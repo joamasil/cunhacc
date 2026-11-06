@@ -82,6 +82,15 @@ const { block } = Astro.props;
     margin: 0;
   }
 
+  /* Mobile: label above value (Figma 178:41625) */
+  @media (max-width: 1023px) {
+    .info-block__row {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-sm);
+      padding-block: var(--space-md);
+    }
+  }
+
   .info-block__images {
     display: flex;
     flex-wrap: wrap;
