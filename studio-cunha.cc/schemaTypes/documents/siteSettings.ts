@@ -10,7 +10,7 @@ export const siteSettings = defineType({
   icon: CogIcon,
   groups: [
     {name: 'general', title: 'General', default: true},
-    {name: 'navigation', title: 'Navigation'},
+    {name: 'figma', title: 'Figma'},
     {name: 'seo', title: 'SEO'},
   ],
   fields: [
@@ -24,7 +24,8 @@ export const siteSettings = defineType({
       name: 'figmaUrl',
       title: 'Figma URL',
       type: 'url',
-      group: 'navigation',
+      group: 'figma',
+      description: 'Shown as "Figma" in the menu. Leave empty to hide it.',
     }),
     // Home page SEO; the OG image is also the share image for pages without one
     ...seoFields({titleHint: 'Site name. The home page title and the suffix on every other page title.'}),

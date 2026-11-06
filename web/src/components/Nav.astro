@@ -8,7 +8,7 @@ import closeIcon from '../assets/icons/close.svg?url';
  * project thumbnail strip. It sits outside the Barba container, so it persists
  * across page transitions; scripts/nav.ts keeps its state in sync.
  */
-const { figmaUrl } = await getSiteSettings();
+const { figmaUrl, contactEmail } = await getSiteSettings();
 const projects = await getProjects();
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const activeSlug = path.startsWith('/work/') ? path.slice('/work/'.length) : projects[0]?.slug;
@@ -16,8 +16,10 @@ const showStrip = path === '/' || path.startsWith('/work/');
 const links = [
   { label: 'Work', href: '/' },
   { label: 'About', href: '/about' },
-  { label: 'Figma', href: figmaUrl, external: true },
-  { label: 'Pizza hunts', href: '/pizza-hunts' },
+  // Hidden when Site settings has no Figma URL
+  ...(figmaUrl ? [{ label: 'Figma', href: figmaUrl, external: true }] : []),
+  // Hidden until the page is ready: { label: 'Pizza hunts', href: '/pizza-hunts' },
+  { label: 'Contact', href: `mailto:${contactEmail}` },
 ];
 ---
 <nav class="site-nav" data-nav data-open="false" data-strip={String(showStrip)} aria-label="Main">
@@ -42,9 +44,6 @@ const links = [
           </a>
         </li>
       ))}
-      <li>
-        <button class="site-nav__link" type="button" data-nav-link data-contact-open>Contact</button>
-      </li>
     </ul>
   </div>
 

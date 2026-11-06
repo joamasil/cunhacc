@@ -155,9 +155,14 @@ export function initTransitions(initPage: PageInit): void {
 
   barba.hooks.beforeEnter(async (data) => {
     if (!data) return;
+    // Barba has already inserted the next container; keep it from painting
+    // unstyled while its stylesheets load and the body theme is swapped.
+    const { container } = data.next;
+    container.style.visibility = 'hidden';
     const doc = parser.parseFromString(data.next.html, 'text/html');
     await syncHead(doc);
     document.body.className = doc.body.className;
+    container.style.visibility = '';
     syncNav(data.next.url.path ?? location.pathname);
     initPage(data.next.container);
   });
@@ -175,6 +180,10 @@ export function initTransitions(initPage: PageInit): void {
         name: 'fade',
         async leave({ current }) {
           await settled(fade([current.container], 1, 0, { duration: motion().base }));
+          // Barba only removes it after enter; take it out of the flow now so
+          // the next page fades in at the top instead of below it.
+          current.container.style.display = 'none';
+          window.scrollTo(0, 0);
         },
         async enter({ next }) {
           await settled(fade([next.container], 0, 1, { duration: motion().base }));
