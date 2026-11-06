@@ -4,7 +4,7 @@ import { toHTML } from '@portabletext/to-html';
 import type { PortableTextBlock } from '@portabletext/types';
 import type { SanityImageSource } from '@sanity/image-url';
 import { urlFor } from './sanity/image';
-import type { About, GalleryItem, InfoBlock, PageSeo, Project, ProjectMedia, SanityImage, SiteSettings } from './types';
+import type { About, ErrorPage, GalleryItem, InfoBlock, PageSeo, Project, ProjectMedia, SanityImage, SiteSettings } from './types';
 
 /*
  * Published content only: the client's API version defaults to the "published"
@@ -43,6 +43,12 @@ const ABOUT_QUERY = defineQuery(`*[_type == "about" && _id == "about"][0] {
   experience[]{ period, role, url },
   skills[]{ label, icons[]${IMAGE} },
   ${SEO}
+}`);
+
+const ERROR_PAGE_QUERY = defineQuery(`*[_type == "errorPage" && _id == "errorPage"][0] {
+  message,
+  "showCard": showCard != false,
+  card{ image${IMAGE}, title, text, link }
 }`);
 
 const SITE_SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "siteSettings"][0] {
@@ -99,6 +105,12 @@ interface RawAbout {
   experience: About['experience'] | null;
   skills: { label: string; icons: RawImage[] | null }[] | null;
   seo: RawSeo;
+}
+
+interface RawErrorPage {
+  message: string | null;
+  showCard: boolean;
+  card: { image: RawImage | null; title: string | null; text: string | null; link: string | null } | null;
 }
 
 interface RawSiteSettings {
@@ -206,6 +218,20 @@ export async function getAbout(): Promise<About> {
       icons: (skill.icons ?? []).map((icon) => mapImage(icon, 64)),
     })),
     seo: mapSeo(raw.seo),
+  };
+}
+
+/** Unlike the other pages, the 404 falls back to the Figma copy instead of failing the build. */
+export async function getErrorPage(): Promise<ErrorPage> {
+  const raw = await sanityClient.fetch<RawErrorPage | null>(ERROR_PAGE_QUERY);
+  const card = raw?.showCard ? raw.card : null;
+  return {
+    message: raw?.message ?? 'Let’s try somewhere else.',
+    // The card needs at least an image and a title to make sense
+    card:
+      card?.image && card.title
+        ? { image: mapImage(card.image, 330), title: card.title, text: card.text ?? '', link: card.link ?? undefined }
+        : undefined,
   };
 }
 

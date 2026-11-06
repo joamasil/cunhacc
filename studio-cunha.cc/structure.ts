@@ -1,6 +1,7 @@
 import type {StructureResolver} from 'sanity/structure'
 import {orderableDocumentListDeskItem} from '@sanity/orderable-document-list'
 import {CogIcon} from '@sanity/icons/Cog'
+import {ErrorScreenIcon} from '@sanity/icons/ErrorScreen'
 import {SparklesIcon} from '@sanity/icons/Sparkles'
 import {UserIcon} from '@sanity/icons/User'
 
@@ -15,6 +16,10 @@ export const structure: StructureResolver = (S, context) =>
         .title('About')
         .icon(UserIcon)
         .child(S.document().schemaType('about').documentId('about').title('About')),
+      S.listItem()
+        .title('Error page')
+        .icon(ErrorScreenIcon)
+        .child(S.document().schemaType('errorPage').documentId('errorPage').title('Error page')),
       S.divider(),
       S.listItem()
         .title('Site settings')

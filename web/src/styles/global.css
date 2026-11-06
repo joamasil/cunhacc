@@ -25,6 +25,11 @@ body.theme-blue {
   background: var(--color-blue);
 }
 
+body.theme-error {
+  color: var(--color-white);
+  background: var(--color-pink);
+}
+
 /* Page grid: 4 columns on mobile, 12 on desktop (see tokens.css) */
 .grid {
   display: grid;

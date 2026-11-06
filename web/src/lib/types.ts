@@ -88,6 +88,17 @@ export interface About {
   seo: PageSeo;
 }
 
+/** The 404 page: a centered sentence plus an optional card (Figma "Popup", Type=About). */
+export interface ErrorPage {
+  message: string;
+  card?: {
+    image: SanityImage;
+    title: string;
+    text: string;
+    link?: string;
+  };
+}
+
 export interface SiteSettings {
   figmaUrl: string;
   contactEmail: string;

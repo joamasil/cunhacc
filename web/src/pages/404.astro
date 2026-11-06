@@ -1,0 +1,107 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ErrorCard from '../components/ErrorCard.astro';
+import { getErrorPage, getSiteSettings } from '../lib/content';
+import cottageIcon from '../assets/icons/cottage.svg?url';
+
+/** Figma "Error" (174:16021) / "Mobile-Error" (177:20642). Netlify serves the built 404.html for unknown paths. */
+const { defaultSeo } = await getSiteSettings();
+const { message, card } = await getErrorPage();
+---
+<BaseLayout
+  title={`Page not found — ${defaultSeo.title}`}
+  description={defaultSeo.description}
+  canonicalPath="/404"
+  bodyClass="theme-error"
+>
+  <!-- Stands in for the main nav ("Navbar secondary", Type=Go-Home). A full page load
+       (data-barba-prevent) swaps it back for the real nav, which lives outside the Barba container. -->
+  <nav class="error-nav" slot="nav" aria-label="Main">
+    <a class="error-nav__home" href="/" aria-label="Go home" data-barba-prevent>
+      <img src={cottageIcon} width="20" height="20" alt="" />
+    </a>
+  </nav>
+  <section class="error">
+    <h1 class="visually-hidden">Page not found</h1>
+    <p class="error__message">{message}</p>
+  </section>
+  {card && (
+    <aside class="error__card">
+      <ErrorCard {...card} />
+    </aside>
+  )}
+</BaseLayout>
+
+<style>
+  .error {
+    display: grid;
+    place-items: center;
+    min-height: 100dvh;
+    padding-inline: var(--grid-margin);
+  }
+
+  .error__message {
+    margin: 0;
+    font-size: var(--body-md-size);
+    line-height: var(--body-md-line-height);
+    font-weight: var(--body-md-weight-semibold);
+    text-align: center;
+  }
+
+  /* Mobile: full width inside the page margins; desktop: 358px in the top-right corner */
+  .error__card {
+    position: absolute;
+    top: var(--grid-margin);
+    right: var(--grid-margin);
+    left: var(--grid-margin);
+  }
+
+  .error-nav {
+    position: fixed;
+    bottom: var(--nav-bottom);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: var(--z-nav);
+    padding: var(--space-xsm);
+    border-radius: var(--radius-md);
+    background: var(--surface-glass);
+    backdrop-filter: blur(var(--surface-glass-blur));
+    -webkit-backdrop-filter: blur(var(--surface-glass-blur));
+  }
+
+  .error-nav__home {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--motion-fast) ease;
+  }
+
+  .error-nav__home img {
+    display: block;
+  }
+
+  .error-nav__home:focus-visible {
+    outline: 2px solid var(--color-black);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    .error-nav__home:hover {
+      background: rgb(255 255 255 / 0.24);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .error__card {
+      left: auto;
+      width: 358px;
+    }
+
+    .error-nav__home {
+      height: 40px;
+      padding: 6px 12px;
+    }
+  }
+</style>

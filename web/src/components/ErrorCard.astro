@@ -1,0 +1,83 @@
+---
+/** Figma "Popup" component, Type=About: frosted card with a square image, title, text and a live local clock. */
+import IconButton from './IconButton.astro';
+import arrowIcon from '../assets/icons/arrow-forward.svg?url';
+import type { ErrorPage } from '../lib/types';
+
+type Props = NonNullable<ErrorPage['card']>;
+const { image, title, text, link } = Astro.props;
+const external = !!link && /^https?:\/\//.test(link);
+
+/** Same clock as the Contact card: Rayane's local time. */
+const timeZone = 'Europe/Lisbon';
+---
+<div class="error-card">
+  <img class="error-card__image" src={image.url} alt={image.alt} width="110" height="110" />
+  <div class="error-card__body">
+    <div class="error-card__row">
+      <p class="error-card__title">{title}</p>
+      {link && <IconButton href={link} label={title} icon={arrowIcon} external={external} data-barba-prevent />}
+    </div>
+    {text && <p class="error-card__text">{text}</p>}
+    <p class="error-card__time" data-clock data-time-zone={timeZone}>&nbsp;</p>
+  </div>
+</div>
+
+<style>
+  .error-card {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-md);
+    height: 127px;
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+    background: var(--surface-glass);
+    backdrop-filter: blur(var(--surface-glass-blur));
+    -webkit-backdrop-filter: blur(var(--surface-glass-blur));
+    color: var(--color-black);
+  }
+
+  .error-card__image {
+    flex-shrink: 0;
+    display: block;
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+  }
+
+  .error-card__body {
+    display: flex;
+    flex: 1 0 0;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 0;
+    height: 100%;
+  }
+
+  .error-card__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+  }
+
+  .error-card p {
+    margin: 0;
+    overflow-wrap: break-word;
+  }
+
+  .error-card__title {
+    font-size: var(--body-lg-size);
+    line-height: 1.15;
+    letter-spacing: var(--body-lg-letter-spacing);
+    font-weight: var(--body-lg-weight-medium);
+  }
+
+  .error-card__time {
+    font-size: var(--body-sm-size);
+    line-height: var(--body-sm-line-height);
+    color: rgb(28 27 31 / 0.65);
+    font-variant-numeric: tabular-nums;
+  }
+</style>
