@@ -1,5 +1,8 @@
 ---
-/** Figma "Popup" component, Type=Contact: pink card with a live local clock and an email button. */
+/**
+ * Figma "Popup" component, Type=Contact: pink card with a live local clock and an email button.
+ * The whole card is clickable: the email link is stretched over it (as in ProjectInfoCard).
+ */
 import IconButton from './IconButton.astro';
 import mailIcon from '../assets/icons/mail.svg?url';
 
@@ -15,13 +18,14 @@ const timeZone = 'Europe/Lisbon';
 <div class="contact-card">
   <div class="contact-card__row">
     <p class="contact-card__title">{label}</p>
-    <IconButton href={`mailto:${email}`} label={`Email ${email}`} icon={mailIcon} variant="white" />
+    <IconButton href={`mailto:${email}`} label={`Email ${email}`} icon={mailIcon} variant="white" class="contact-card__mail" />
   </div>
   <p class="contact-card__time" data-clock data-time-zone={timeZone}>&nbsp;</p>
 </div>
 
 <style>
   .contact-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -31,6 +35,20 @@ const timeZone = 'Europe/Lisbon';
     background: var(--color-pink);
     backdrop-filter: blur(var(--surface-glass-blur));
     color: var(--color-black);
+  }
+
+  /* Stretched link: covers the card */
+  .contact-card :global(.contact-card__mail::after) {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+  }
+
+  @media (hover: hover) {
+    .contact-card:hover :global(.contact-card__mail) {
+      background: var(--color-gray-200);
+    }
   }
 
   .contact-card__row {
