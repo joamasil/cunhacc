@@ -4,7 +4,20 @@ import { toHTML } from '@portabletext/to-html';
 import type { PortableTextBlock } from '@portabletext/types';
 import type { SanityImageSource } from '@sanity/image-url';
 import { urlFor } from './sanity/image';
-import type { About, ErrorPage, GalleryItem, InfoBlock, PageSeo, Project, ProjectMedia, SanityImage, SiteSettings } from './types';
+import type {
+  About,
+  AboutSection,
+  EducationItem,
+  ErrorPage,
+  ExperienceItem,
+  GalleryItem,
+  InfoBlock,
+  PageSeo,
+  Project,
+  ProjectMedia,
+  SanityImage,
+  SiteSettings,
+} from './types';
 
 /*
  * Published content only: the client's API version defaults to the "published"
@@ -42,6 +55,8 @@ const ABOUT_QUERY = defineQuery(`*[_type == "about" && _id == "about"][0] {
   education[]{ label, title, institution },
   experience[]{ period, role, url },
   skills[]{ label, icons[]${IMAGE} },
+  software[]{ label, icons[]${IMAGE} },
+  "sectionOrder": sectionOrder[].section,
   ${SEO}
 }`);
 
@@ -95,15 +110,19 @@ interface RawProject {
   seo: RawSeo;
 }
 
+type RawSkill = { label: string; icons: RawImage[] | null };
+
 interface RawAbout {
   heading: string;
   intro: string | null;
   bio: PortableTextBlock[] | null;
   portrait: RawImage;
   resumeUrl: string | null;
-  education: About['education'] | null;
-  experience: About['experience'] | null;
-  skills: { label: string; icons: RawImage[] | null }[] | null;
+  education: EducationItem[] | null;
+  experience: ExperienceItem[] | null;
+  skills: RawSkill[] | null;
+  software: RawSkill[] | null;
+  sectionOrder: (AboutSection['type'] | null)[] | null;
   seo: RawSeo;
 }
 
@@ -211,14 +230,33 @@ export async function getAbout(): Promise<About> {
     bio: toHTML(raw.bio ?? []),
     portrait: mapImage(raw.portrait, 1200),
     resumeUrl: raw.resumeUrl ?? undefined,
-    education: raw.education ?? [],
-    experience: raw.experience ?? [],
-    skills: (raw.skills ?? []).map((skill) => ({
-      label: skill.label,
-      icons: (skill.icons ?? []).map((icon) => mapImage(icon, 64)),
-    })),
+    sections: mapAboutSections(raw),
     seo: mapSeo(raw.seo),
   };
+}
+
+const ABOUT_SECTION_ORDER: AboutSection['type'][] = ['education', 'experience', 'skills', 'software'];
+
+/**
+ * Sections in the editor's order, then any they left out in the default order
+ * (the field is empty on documents created before it existed). Empty ones are dropped.
+ */
+function mapAboutSections(raw: RawAbout): AboutSection[] {
+  const mapSkills = (skills: RawSkill[] | null) =>
+    (skills ?? []).map((skill) => ({
+      label: skill.label,
+      icons: (skill.icons ?? []).map((icon) => mapImage(icon, 64)),
+    }));
+  const byType: Record<AboutSection['type'], AboutSection> = {
+    education: { type: 'education', items: raw.education ?? [] },
+    experience: { type: 'experience', items: raw.experience ?? [] },
+    skills: { type: 'skills', items: mapSkills(raw.skills) },
+    software: { type: 'software', items: mapSkills(raw.software) },
+  };
+  const order = [...new Set([...(raw.sectionOrder ?? []), ...ABOUT_SECTION_ORDER])].filter(
+    (type): type is AboutSection['type'] => !!type && type in byType,
+  );
+  return order.map((type) => byType[type]).filter((section) => section.items.length > 0);
 }
 
 /** Unlike the other pages, the 404 falls back to the Figma copy instead of failing the build. */

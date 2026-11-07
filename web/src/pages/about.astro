@@ -39,52 +39,63 @@ const siteSettings = await getSiteSettings();
     </div>
 
     <div class="about__details">
-      <section class="about__section">
-        <h2 class="about__section-title">Education</h2>
-        <ul class="about__rows">
-          {about.education.map((item) => (
-            <li class="about__row">
-              <span class="about__label">{item.label}</span>
-              <p class="about__value">
-                <strong>{item.title}</strong><br />
-                {item.institution}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section class="about__section">
-        <h2 class="about__section-title">Experience</h2>
-        <ul class="about__rows about__rows--divided">
-          {about.experience.map((item) => (
-            <li class="about__row">
-              <span class="about__label">{item.period}</span>
-              <p class="about__value">
-                {item.url ? (
-                  <a href={item.url} target="_blank" rel="noopener noreferrer">{item.role}↗</a>
-                ) : (
-                  item.role
-                )}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section class="about__section about__section--inline">
-        <h2 class="about__section-title">Skills</h2>
-        <ul class="about__tags">
-          {about.skills.map((skill) => (
-            <li class="about__tag">
-              {skill.label}
-              {skill.icons.map((icon) => (
-                <img src={icon.url} alt={icon.alt} width={icon.width} height={icon.height} />
+      {about.sections.map((section) => {
+        if (section.type === 'education') {
+          return (
+            <section class="about__section">
+              <h2 class="about__section-title">Education</h2>
+              <ul class="about__rows">
+                {section.items.map((item) => (
+                  <li class="about__row">
+                    <span class="about__label">{item.label}</span>
+                    <p class="about__value">
+                      <strong>{item.title}</strong><br />
+                      {item.institution}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        }
+        if (section.type === 'experience') {
+          return (
+            <section class="about__section">
+              <h2 class="about__section-title">Experience</h2>
+              <ul class="about__rows about__rows--divided">
+                {section.items.map((item) => (
+                  <li class="about__row">
+                    <span class="about__label">{item.period}</span>
+                    <p class="about__value">
+                      {item.url ? (
+                        <a href={item.url} target="_blank" rel="noopener noreferrer">{item.role}↗</a>
+                      ) : (
+                        item.role
+                      )}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        }
+        // Skills and Software share the tag layout
+        return (
+          <section class="about__section about__section--inline">
+            <h2 class="about__section-title">{section.type === 'skills' ? 'Skills' : 'Software'}</h2>
+            <ul class="about__tags">
+              {section.items.map((skill) => (
+                <li class="about__tag">
+                  {skill.label}
+                  {skill.icons.map((icon) => (
+                    <img src={icon.url} alt={icon.alt} width={icon.width} height={icon.height} />
+                  ))}
+                </li>
               ))}
-            </li>
-          ))}
-        </ul>
-      </section>
+            </ul>
+          </section>
+        );
+      })}
     </div>
   </article>
 </BaseLayout>
@@ -310,7 +321,7 @@ const siteSettings = await getSiteSettings();
       padding-top: var(--space-sm);
     }
 
-    /* Skills: title and tags on one row */
+    /* Skills and Software: title and tags on one row */
     .about__section--inline {
       align-items: center;
     }

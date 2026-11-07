@@ -2,6 +2,14 @@ import {defineArrayMember, defineField, defineType} from 'sanity'
 import {UserIcon} from '@sanity/icons/User'
 import {seoFields} from '../fields/seo'
 
+/** The detail sections under the bio, in their default order. */
+const SECTIONS = [
+  {title: 'Education', value: 'education'},
+  {title: 'Experience', value: 'experience'},
+  {title: 'Skills', value: 'skills'},
+  {title: 'Software', value: 'software'},
+]
+
 /** Singleton: the About page. */
 export const about = defineType({
   name: 'about',
@@ -44,6 +52,37 @@ export const about = defineType({
     }),
     defineField({
       group: 'content',
+      name: 'sectionOrder',
+      title: 'Section order',
+      type: 'array',
+      description: 'Drag to reorder the sections below the bio. Sections with no items are hidden on the site.',
+      of: [
+        defineArrayMember({
+          name: 'sectionKey',
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'section',
+              type: 'string',
+              options: {list: SECTIONS, layout: 'radio'},
+              validation: (rule) => rule.required(),
+            }),
+          ],
+          preview: {
+            select: {section: 'section'},
+            prepare: ({section}) => ({title: SECTIONS.find((s) => s.value === section)?.title ?? section}),
+          },
+        }),
+      ],
+      initialValue: SECTIONS.map((s) => ({_type: 'sectionKey', section: s.value})),
+      validation: (rule) =>
+        rule.custom((items?: {section?: string}[]) => {
+          const keys = (items ?? []).map((item) => item.section)
+          return new Set(keys).size === keys.length || 'Each section can only appear once.'
+        }),
+    }),
+    defineField({
+      group: 'content',
       name: 'education',
       type: 'array',
       of: [
@@ -83,6 +122,27 @@ export const about = defineType({
       of: [
         defineArrayMember({
           name: 'skill',
+          type: 'object',
+          fields: [
+            defineField({name: 'label', type: 'string', validation: (rule) => rule.required()}),
+            defineField({
+              name: 'icons',
+              type: 'array',
+              description: 'Small icons shown inside the tag.',
+              of: [defineArrayMember({type: 'accessibleImage', description: 'SVG, or under 50 KB.'})],
+            }),
+          ],
+          preview: {select: {title: 'label', media: 'icons.0'}},
+        }),
+      ],
+    }),
+    defineField({
+      group: 'content',
+      name: 'software',
+      type: 'array',
+      of: [
+        defineArrayMember({
+          name: 'softwareItem',
           type: 'object',
           fields: [
             defineField({name: 'label', type: 'string', validation: (rule) => rule.required()}),

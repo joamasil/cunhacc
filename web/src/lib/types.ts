@@ -76,15 +76,20 @@ export interface Skill {
   icons: SanityImage[];
 }
 
+/** The detail sections under the bio, in the order the editor set. */
+export type AboutSection =
+  | { type: 'education'; items: EducationItem[] }
+  | { type: 'experience'; items: ExperienceItem[] }
+  | { type: 'skills' | 'software'; items: Skill[] };
+
 export interface About {
   heading: string;
   intro: string;
   bio: string;
   portrait: SanityImage;
   resumeUrl?: string;
-  education: EducationItem[];
-  experience: ExperienceItem[];
-  skills: Skill[];
+  /** Only sections with items, in the editor's order. */
+  sections: AboutSection[];
   seo: PageSeo;
 }
 
