@@ -188,12 +188,12 @@ const introHtml = more ? (/<\/p>\s*$/.test(intro) ? intro.replace(/<\/p>\s*$/, `
     font-weight: var(--body-md-weight-semibold);
     color: var(--color-pink);
     cursor: pointer;
+    transition: font-weight var(--motion-fast) ease;
   }
 
   @media (hover: hover) {
     .project-panel__description :global(.project-panel__more-toggle:hover) {
-      text-decoration: underline;
-      text-underline-offset: 0.2em;
+      font-weight: 700;
     }
   }
 

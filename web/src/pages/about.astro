@@ -220,10 +220,14 @@ const siteSettings = await getSiteSettings();
   .about__value a {
     color: inherit;
     text-decoration: none;
+    transition: font-weight var(--motion-fast) ease;
   }
 
-  .about__value a:hover {
-    text-decoration: underline;
+  /* Heavier on hover, colour unchanged (project page links also turn pink) */
+  @media (hover: hover) {
+    .about__value a:hover {
+      font-weight: var(--body-md-weight-semibold);
+    }
   }
 
   .about__tags {
