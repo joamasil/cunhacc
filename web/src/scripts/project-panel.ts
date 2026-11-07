@@ -7,6 +7,33 @@ import Lenis from 'lenis';
  */
 
 let panelLenis: Lenis[] = [];
+let videoObserver: IntersectionObserver | null = null;
+
+/*
+ * Gallery videos play while on screen and pause when scrolled away. Played
+ * from here rather than via `autoplay`, which browsers skip for markup Barba
+ * swaps in.
+ */
+function initVideos(root: ParentNode): void {
+  videoObserver?.disconnect();
+  videoObserver = null;
+
+  const videos = Array.from(root.querySelectorAll<HTMLVideoElement>('[data-panel] [data-media-video]'));
+  if (videos.length === 0) return;
+
+  videoObserver = new IntersectionObserver((entries) => {
+    entries.forEach(({ target, isIntersecting }) => {
+      const video = target as HTMLVideoElement;
+      if (isIntersecting) {
+        video.muted = true; // autoplay policy: only muted videos may start without a gesture
+        void video.play().catch(() => undefined);
+      } else {
+        video.pause();
+      }
+    });
+  });
+  videos.forEach((video) => videoObserver?.observe(video));
+}
 
 /** "Read more +" reveals the rest of the description, then goes away. */
 function initReadMore(root: ParentNode): void {
@@ -24,6 +51,7 @@ function initReadMore(root: ParentNode): void {
 
 export function initProjectPanel(root: ParentNode = document): void {
   initReadMore(root);
+  initVideos(root);
 
   panelLenis.forEach((lenis) => lenis.destroy());
   panelLenis = [];
