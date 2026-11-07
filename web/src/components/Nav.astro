@@ -192,10 +192,6 @@ const links = [
     transition: opacity var(--motion-fast) ease;
   }
 
-  .site-nav__link[aria-current='page'] {
-    opacity: 0.5;
-  }
-
   /* Hovering one link dims the rest (Figma 209:41543) */
   @media (hover: hover) {
     .site-nav__menu:has(.site-nav__link:hover) .site-nav__link:not(:hover) {

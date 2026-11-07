@@ -12,7 +12,7 @@ const { PUBLIC_SANITY_PROJECT_ID, PUBLIC_SANITY_DATASET } = loadEnv(
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://example.com',
+  site: 'https://cunha.cc',
   integrations: [
     sanity({
       projectId: PUBLIC_SANITY_PROJECT_ID,
