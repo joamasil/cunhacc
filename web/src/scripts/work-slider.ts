@@ -42,12 +42,18 @@ export function initWorkSlider(root: ParentNode = document): void {
 
     slides.forEach((slide, slideIndex) => {
       const active = slideIndex === index;
+      const entering = active && slide.dataset.active !== 'true';
       slide.dataset.active = String(active);
       slide.setAttribute('aria-hidden', String(!active));
       slide.querySelectorAll<HTMLVideoElement>('[data-media-video]').forEach((video) => {
         // Hidden ones are the other breakpoint's cover (CoverMedia)
-        if (active && video.getClientRects().length > 0) void video.play().catch(() => undefined);
-        else video.pause();
+        if (active && video.getClientRects().length > 0) {
+          if (entering) video.currentTime = 0; // each visit starts the cover from the top
+          video.muted = true; // autoplay policy: only muted videos may start without a gesture
+          void video.play().catch(() => undefined);
+        } else {
+          video.pause();
+        }
       });
     });
 
