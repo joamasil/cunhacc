@@ -20,7 +20,7 @@
 
   /* Surfaces — frosted pills/cards (nav, project info card) */
   --surface-glass: rgb(225 225 225 / 0.65); /* gray-100 @ 65% */
-  --surface-glass-blur: 20px;
+  --surface-glass-blur: 40px;
   --surface-solid: var(--color-white);
   --surface-backdrop: var(--color-gray-200); /* page behind the project panel */
   --thumb-dim: rgb(0 0 0 / 0.2); /* overlay on inactive project thumbnails */
