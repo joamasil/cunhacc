@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ErrorCard from '../components/ErrorCard.astro';
+import Footer from '../components/Footer.astro';
 import { getErrorPage, getSiteSettings } from '../lib/content';
 import cottageIcon from '../assets/icons/cottage.svg?url';
 
@@ -30,6 +31,7 @@ const { message, card } = await getErrorPage();
       <ErrorCard {...card} />
     </aside>
   )}
+  <Footer fixed />
 </BaseLayout>
 
 <style>
@@ -89,6 +91,13 @@ const { message, card } = await getErrorPage();
   @media (hover: hover) {
     .error-nav__home:hover {
       background: rgb(255 255 255 / 0.24);
+    }
+  }
+
+  /* Mobile: the credits take two lines at the bottom, so the home button sits above them */
+  @media (max-width: 1023px) {
+    .error-nav {
+      bottom: calc(var(--grid-margin) * 2 + var(--body-sm-size) * var(--body-sm-line-height) * 2 + var(--space-xsm));
     }
   }
 

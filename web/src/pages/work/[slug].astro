@@ -3,6 +3,7 @@ import type { GetStaticPaths } from 'astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Nav from '../../components/Nav.astro';
 import ProjectPanel from '../../components/ProjectPanel.astro';
+import Footer from '../../components/Footer.astro';
 import { getProjectBySlug, getProjects, getSiteSettings } from '../../lib/content';
 
 export const getStaticPaths = (async () => {
@@ -28,4 +29,14 @@ const ogImage =
 >
   <Nav slot="nav" />
   <ProjectPanel project={project} />
+  <!-- Desktop: pinned under the panel. Mobile has it at the end of the panel (ProjectPanel). -->
+  <Footer fixed class="project-footer" />
 </BaseLayout>
+
+<style>
+  @media (max-width: 1023px) {
+    :global(footer.site-footer.project-footer) {
+      display: none;
+    }
+  }
+</style>

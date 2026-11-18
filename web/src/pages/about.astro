@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Nav from '../components/Nav.astro';
 import ContactCard from '../components/ContactCard.astro';
 import DownloadCard from '../components/DownloadCard.astro';
+import Footer from '../components/Footer.astro';
 import { getAbout, getSiteSettings } from '../lib/content';
 
 const about = await getAbout();
@@ -68,7 +69,7 @@ const siteSettings = await getSiteSettings();
                     <span class="about__label">{item.period}</span>
                     <p class="about__value">
                       {item.url ? (
-                        <a href={item.url} target="_blank" rel="noopener noreferrer">{item.role}↗</a>
+                        <a class="hover-underline" href={item.url} target="_blank" rel="noopener noreferrer">{item.role}↗</a>
                       ) : (
                         item.role
                       )}
@@ -98,6 +99,7 @@ const siteSettings = await getSiteSettings();
       })}
     </div>
   </article>
+  <Footer />
 </BaseLayout>
 
 <style>
@@ -163,7 +165,7 @@ const siteSettings = await getSiteSettings();
 
   .about__lede,
   .about__label {
-    color: rgb(255 255 255 / 0.65);
+    color: var(--text-muted-on-dark);
   }
 
   .about__lede,
@@ -217,17 +219,9 @@ const siteSettings = await getSiteSettings();
     font-weight: var(--body-md-weight-semibold);
   }
 
+  /* Hover underline comes from .hover-underline in global.css */
   .about__value a {
     color: inherit;
-    text-decoration: none;
-    transition: font-weight var(--motion-fast) ease;
-  }
-
-  /* Heavier on hover, colour unchanged (project page links also turn pink) */
-  @media (hover: hover) {
-    .about__value a:hover {
-      font-weight: var(--body-md-weight-semibold);
-    }
   }
 
   .about__tags {

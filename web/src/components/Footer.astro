@@ -1,0 +1,56 @@
+---
+/**
+ * Page footer: copyright left, dev credit right. On every page except the home slider.
+ * `fixed` pins it to the bottom of the screen, for pages that don't scroll (project, 404).
+ */
+interface Props {
+  fixed?: boolean;
+  class?: string;
+}
+const { fixed = false, class: className } = Astro.props;
+// Build-time year; scripts/year.ts updates it in the browser
+const year = new Date().getFullYear();
+---
+<footer class:list={['site-footer', fixed && 'site-footer--fixed', className]}>
+  <p class="site-footer__text">© <span data-year>{year}</span> Rayane Cunha. All rights reserved.</p>
+  <p class="site-footer__text">
+    Built by <a class="hover-underline" href="https://joana.dev" target="_blank" rel="noopener noreferrer">joana.dev</a>
+  </p>
+</footer>
+
+<style>
+  .site-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-xsm) var(--space-md);
+    padding: 0 var(--grid-margin) var(--grid-margin);
+    font-size: var(--body-sm-size);
+    line-height: var(--body-sm-line-height);
+    letter-spacing: var(--body-sm-letter-spacing);
+    font-weight: var(--body-sm-weight);
+    color: var(--text-muted-on-dark);
+  }
+
+  /* Project pages: on the light backdrop / white panel */
+  :global(body.theme-work) .site-footer {
+    color: var(--text-muted-on-light);
+  }
+
+  /* Sits under the nav, which floats above it */
+  .site-footer--fixed {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: calc(var(--z-nav) - 1);
+  }
+
+  .site-footer__text {
+    margin: 0;
+  }
+
+  .site-footer a {
+    color: inherit;
+  }
+</style>

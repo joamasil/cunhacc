@@ -76,3 +76,23 @@ body.theme-work {
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * Text links: on hover a 1px underline draws in from the left, and on leave
+ * it carries on out to the right. Colour and weight stay the same. The line
+ * is a background, so its width can animate; it anchors left while hovered
+ * and right otherwise, which is what sends it out the far side.
+ */
+.hover-underline {
+  text-decoration: none;
+  background: linear-gradient(currentColor, currentColor) no-repeat 100% 100% / 0% 1px;
+  transition: background-size var(--motion-base) var(--ease-out);
+}
+
+/* Desktop only: no hover effects on mobile */
+@media (min-width: 1024px) and (hover: hover) {
+  .hover-underline:hover {
+    background-position: 0% 100%;
+    background-size: 100% 1px;
+  }
+}

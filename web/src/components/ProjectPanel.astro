@@ -2,6 +2,7 @@
 import type { Project } from '../lib/types';
 import IconButton from './IconButton.astro';
 import InfoBlock from './InfoBlock.astro';
+import Footer from './Footer.astro';
 import ProjectMedia from './ProjectMedia.astro';
 import TagList from './TagList.astro';
 import closeIcon from '../assets/icons/close-small.svg?url';
@@ -19,7 +20,7 @@ const { intro, more } = project.description;
 
 // "Read more +" sits inline at the end of the intro's last paragraph, as in Figma
 const toggle =
-  '<button type="button" class="project-panel__more-toggle" data-read-more aria-controls="project-more" aria-expanded="false">Read more +</button>';
+  '<button type="button" class="project-panel__more-toggle hover-underline" data-read-more aria-controls="project-more" aria-expanded="false">Read more +</button>';
 const introHtml = more ? (/<\/p>\s*$/.test(intro) ? intro.replace(/<\/p>\s*$/, ` ${toggle}</p>`) : `${intro} ${toggle}`) : intro;
 ---
 <article class="project-panel" data-panel aria-labelledby="project-title">
@@ -59,6 +60,9 @@ const introHtml = more ? (/<\/p>\s*$/.test(intro) ? intro.replace(/<\/p>\s*$/, `
         )}
       </div>
     </div>
+
+    <!-- Mobile only: the end of the panel's scroll. Desktop pins it under the panel (work/[slug].astro). -->
+    <Footer class="project-panel__footer" />
   </div>
 </article>
 
@@ -183,18 +187,12 @@ const introHtml = more ? (/<\/p>\s*$/.test(intro) ? intro.replace(/<\/p>\s*$/, `
   .project-panel__description :global(.project-panel__more-toggle) {
     padding: 0;
     border: 0;
-    background: none;
+    background-color: transparent; /* not the `background` shorthand: the hover underline is a background image */
     font: inherit;
-    font-weight: var(--body-md-weight-semibold);
+    font-weight: var(--body-md-weight);
     color: var(--color-pink);
     cursor: pointer;
-    transition: font-weight var(--motion-fast) ease;
-  }
-
-  @media (hover: hover) {
-    .project-panel__description :global(.project-panel__more-toggle:hover) {
-      font-weight: 700;
-    }
+    /* Hover underline comes from .hover-underline in global.css */
   }
 
   .project-panel__industry {
@@ -210,7 +208,17 @@ const introHtml = more ? (/<\/p>\s*$/.test(intro) ? intro.replace(/<\/p>\s*$/, `
   /* Mobile (Figma 178:41302): one column that scrolls as a whole — synopsis,
      gallery, then the info blocks. The info wrappers dissolve (display: contents)
      so the gallery can sit between the synopsis and the blocks. */
+  /* Mobile only (see the template); the panel's padding already provides the margins */
+  .project-panel :global(.project-panel__footer) {
+    display: none;
+  }
+
   @media (max-width: 1023px) {
+    .project-panel :global(.project-panel__footer) {
+      display: flex;
+      padding: 0;
+    }
+
     .project-panel {
       bottom: calc(var(--nav-bottom) + var(--nav-height) + 2rem);
     }
