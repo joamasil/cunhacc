@@ -1,5 +1,8 @@
 ---
-/** Figma "Popup" component, Type=Download: translucent card with an outline download button. */
+/**
+ * Figma "Popup" component, Type=Download: translucent card with an outline download button.
+ * The whole card is clickable: the download link is stretched over it (as in ContactCard).
+ */
 import IconButton from './IconButton.astro';
 import downloadIcon from '../assets/icons/download.svg?url';
 
@@ -11,11 +14,12 @@ const { href, label = 'Download CV' } = Astro.props;
 ---
 <div class="download-card">
   <p class="download-card__title">{label}</p>
-  <IconButton href={href} label={label} icon={downloadIcon} variant="outline" download />
+  <IconButton href={href} label={label} icon={downloadIcon} variant="outline" download class="download-card__button" />
 </div>
 
 <style>
   .download-card {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -25,6 +29,25 @@ const { href, label = 'Download CV' } = Astro.props;
     background: rgb(255 255 255 / 0.65);
     backdrop-filter: blur(var(--surface-glass-blur));
     color: var(--color-black);
+  }
+
+  /* Stretched link: covers the card */
+  .download-card :global(.download-card__button::after) {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+  }
+
+  /* Hovering anywhere on the card shows the button's hover state (desktop only) */
+  @media (min-width: 1024px) and (hover: hover) {
+    .download-card:hover :global(.download-card__button) {
+      background: var(--color-black);
+    }
+
+    .download-card:hover :global(.download-card__button img) {
+      filter: invert(1);
+    }
   }
 
   .download-card__title {
