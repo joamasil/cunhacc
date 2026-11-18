@@ -378,7 +378,10 @@ export function syncNav(path: string): void {
 
   menu?.querySelectorAll<HTMLAnchorElement>('a[data-nav-link]').forEach((link) => {
     const url = new URL(link.href, location.href);
-    const current = url.origin === location.origin && normalizePath(url.pathname) === normalized;
+    const linkPath = normalizePath(url.pathname);
+    // Project pages belong to Work
+    const current =
+      url.origin === location.origin && (linkPath === normalized || (linkPath === '/' && normalized.startsWith('/work/')));
     if (current) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   });

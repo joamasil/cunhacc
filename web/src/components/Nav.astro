@@ -44,7 +44,7 @@ const links = [
             class="site-nav__link"
             href={link.href}
             data-nav-link
-            aria-current={!link.external && link.href === path ? 'page' : undefined}
+            aria-current={!link.external && (link.href === path || (link.href === '/' && path.startsWith('/work/'))) ? 'page' : undefined}
             target={link.external ? '_blank' : undefined}
             rel={link.external ? 'noopener noreferrer' : undefined}
           >
@@ -189,18 +189,7 @@ const links = [
     height: 40px;
     padding: 6px var(--space-lg);
     white-space: nowrap;
-    transition: opacity var(--motion-fast) ease;
-  }
-
-  /* Hovering one link dims the rest (Figma 209:41543) */
-  @media (hover: hover) {
-    .site-nav__menu:has(.site-nav__link:hover) .site-nav__link:not(:hover) {
-      opacity: 0.5;
-    }
-
-    .site-nav__menu .site-nav__link:hover {
-      opacity: 1;
-    }
+    transition: background-color var(--motion-fast) ease;
   }
 
   .site-nav__toggle:focus-visible,
@@ -237,12 +226,22 @@ const links = [
     border-radius: var(--radius-xs);
   }
 
+  /* ::after dims inactive thumbnails; ::before is the pink hover tint */
+  .site-nav__thumb::before,
   .site-nav__thumb::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: var(--thumb-dim);
     transition: opacity var(--motion-fast) ease;
+  }
+
+  .site-nav__thumb::before {
+    background: rgb(255 0 195 / 0.2);
+    opacity: 0;
+  }
+
+  .site-nav__thumb::after {
+    background: var(--thumb-dim);
   }
 
   .site-nav__thumb-image {
@@ -276,9 +275,15 @@ const links = [
     opacity: 1;
   }
 
-  @media (hover: hover) {
+  /* Desktop only, like the menu links */
+  @media (min-width: 1024px) and (hover: hover) {
+    /* Full brightness, with a pink tint on top */
     .site-nav__thumb:hover::after {
       opacity: 0;
+    }
+
+    .site-nav__thumb:hover::before {
+      opacity: 1;
     }
   }
 
@@ -310,6 +315,11 @@ const links = [
     width: 100%;
     border-radius: var(--radius-md);
     background: rgb(255 255 255 / 0.24);
+  }
+
+  /* Current page (Figma 209:41560); higher specificity than the open-panel fill */
+  .site-nav[data-open='true'] .site-nav__link[aria-current='page'] {
+    background: var(--color-white);
   }
 
   /* Mobile "All projects" dropdown (Figma 178:27564). Opening either panel
@@ -410,14 +420,24 @@ const links = [
 
     .site-nav[data-open='true'] .site-nav__link {
       width: auto;
-      border-radius: 40px;
       background: none;
+    }
+
+    .site-nav[data-open='true'] .site-nav__link[aria-current='page'] {
+      background: var(--color-white);
     }
 
     /* Only the active project stays in the strip while the menu is open;
        scripts/nav.ts fades the others out where they stood. */
     .site-nav[data-open='true'] .site-nav__thumb-item:not([data-active='true']) {
       display: none;
+    }
+  }
+
+  /* Hover is desktop only; on mobile just the current page is marked */
+  @media (min-width: 1024px) and (hover: hover) {
+    .site-nav[data-open='true'] .site-nav__link:not([aria-current='page']):hover {
+      background: var(--color-pink);
     }
   }
 </style>
