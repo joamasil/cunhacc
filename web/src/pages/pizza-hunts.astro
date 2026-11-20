@@ -1,8 +1,464 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import { getPizzaHunts, getSiteSettings } from '../lib/content';
+import arrowDropDownIcon from '../assets/icons/arrow-drop-down.svg?url';
+
+/**
+ * Figma "Pomodoro": list 174:15811, open row 188:19930, mobile 188:20062.
+ * Content: the "Pizza hunts" singleton in Sanity. Search lives in the bottom
+ * nav (Nav.astro); sorting, filtering and opening rows are in scripts/pizza-hunts.ts.
+ */
+const siteSettings = await getSiteSettings();
+const { title, places, seo } = await getPizzaHunts();
+
+// "(My) to-Dough List ↘": text in (brackets) is grey
+const titleParts = title.split(/(\([^)]*\))/).filter(Boolean);
+
+const sortable = [
+  { key: 'name', label: 'Pizzeria', class: 'pizza__col--name' },
+  { key: 'city', label: 'City', class: 'pizza__col--city' },
+  { key: 'country', label: 'Country', class: 'pizza__col--country' },
+] as const;
+
+const isExternal = (href: string) => /^https?:/.test(href);
 ---
-<BaseLayout title="Pizza hunts — cunha.cc" description="Pizza hunts." canonicalPath="/pizza-hunts">
+<BaseLayout
+  title={`${seo?.title ?? 'Pizza hunts'} — ${siteSettings.defaultSeo.title}`}
+  description={seo?.description ?? siteSettings.defaultSeo.description}
+  canonicalPath="/pizza-hunts"
+  ogImage={seo?.ogImage?.url ?? siteSettings.defaultSeo.ogImage?.url}
+  bodyClass="theme-gray"
+>
   <Nav slot="nav" />
-  <h1>Pizza hunts (coming soon)</h1>
+  <article class="pizza" data-pizza-hunts>
+    <h1 class="pizza__title">
+      {titleParts.map((part) => (/^\(.*\)$/.test(part) ? <span class="pizza__title-muted">{part}</span> : part))}
+    </h1>
+
+    <div class="pizza__table">
+      <div class="pizza__head pizza__grid">
+        {sortable.map((column) => (
+          <button class:list={['pizza__sort', column.class]} type="button" data-sort={column.key} aria-pressed="false">
+            {column.label}
+            <img class="pizza__sort-icon" src={arrowDropDownIcon} width="20" height="20" alt="" />
+            <span class="visually-hidden" data-sort-state></span>
+          </button>
+        ))}
+        <span class="pizza__head-label pizza__col--location">Location</span>
+      </div>
+
+      <ul class="pizza__rows" data-pizza-rows>
+        {places.map((place, index) => {
+          const detailsId = `pizzeria-${index}`;
+          const expandable = place.details.length > 0;
+          return (
+            <li
+              class="pizza__row"
+              data-pizza-row
+              data-open="false"
+              data-expandable={String(expandable)}
+              data-index={index}
+              data-name={place.name}
+              data-city={place.city}
+              data-country={place.country}
+            >
+              <div class="pizza__grid">
+                <span class="pizza__name pizza__col--name">{place.name}</span>
+                <span class="pizza__col--city">{place.city}</span>
+                <span class="pizza__col--country">
+                  <span class="pizza__country-full">{place.country}</span>
+                  <abbr class="pizza__country-code" title={place.country}>{place.countryCode}</abbr>
+                </span>
+                <span class="pizza__col--location">
+                  {place.directionsUrl && (
+                    <a class="pizza__go" href={place.directionsUrl} target="_blank" rel="noopener noreferrer">
+                      Go to{' '}<span class="pizza__go-arrow" aria-hidden="true">↗</span>
+                      <span class="visually-hidden"> {place.name} directions (opens in a new tab)</span>
+                    </a>
+                  )}
+                </span>
+
+                {expandable && (
+                  <div class="pizza__details" id={detailsId} data-pizza-details inert>
+                    <div class="pizza__details-inner">
+                      {place.details.map((detail) => {
+                        const lines = detail.value.split('\n').map((line, lineIndex) => (lineIndex === 0 ? line : [<br />, line]));
+                        return (
+                          <p class="pizza__detail">
+                            {detail.label && <span>{detail.label}</span>}
+                            {detail.href ? (
+                              <a
+                                href={detail.href}
+                                target={isExternal(detail.href) ? '_blank' : undefined}
+                                rel={isExternal(detail.href) ? 'noopener noreferrer' : undefined}
+                              >
+                                <span class="hover-underline">{lines}</span>
+                              </a>
+                            ) : (
+                              <span>{lines}</span>
+                            )}
+                          </p>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {expandable && (
+                <button
+                  class="pizza__toggle"
+                  type="button"
+                  data-pizza-toggle
+                  aria-expanded="false"
+                  aria-controls={detailsId}
+                  aria-label={`${place.name}: show details`}
+                >
+                  <!-- Figma expand_content / collapse_content (192:20576, 192:20642) -->
+                  <svg class="pizza__toggle-icon pizza__toggle-icon--expand" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M5.41699 14.5833V9.99999H6.50033V13.5H10.0003V14.5833H5.41699ZM13.5003 9.99999V6.49999H10.0003V5.41666H14.5837V9.99999H13.5003Z" />
+                  </svg>
+                  <svg class="pizza__toggle-icon pizza__toggle-icon--collapse" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M9.00033 11V15.5833H7.91699V12.0833H4.41699V11H9.00033ZM12.0837 4.41666V7.91666H15.5837V8.99999H11.0003V4.41666H12.0837Z" />
+                  </svg>
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+
+      <p class="pizza__empty" data-pizza-empty hidden>No pizzas found. Try another pizzeria, city or country.</p>
+      <p class="visually-hidden" aria-live="polite" data-pizza-status></p>
+    </div>
+  </article>
+  <Footer />
 </BaseLayout>
+
+<style>
+  .pizza {
+    display: flex;
+    flex-direction: column;
+    gap: 112px;
+    padding: var(--grid-margin) var(--grid-margin) 120px; /* bottom clears the fixed nav */
+  }
+
+  .pizza__title {
+    margin: 0;
+  }
+
+  .pizza__title-muted {
+    color: var(--color-gray-500);
+  }
+
+  /* Columns. Desktop starts them at 376px steps of a 1328px row (Figma);
+     mobile shows only Pizzeria and Country (as a code). */
+  .pizza__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 202fr) minmax(0, 124fr);
+    align-items: start;
+    padding-inline: var(--space-md);
+  }
+
+  .pizza__grid > .pizza__col--city,
+  .pizza__grid > .pizza__col--location,
+  .pizza__country-full {
+    display: none;
+  }
+
+  .pizza__head {
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--color-gray-200);
+  }
+
+  .pizza__sort,
+  .pizza__head-label {
+    display: flex;
+    align-items: center;
+    justify-self: start;
+    font-size: var(--body-sm-size);
+    line-height: 20px;
+    color: var(--color-gray-500);
+  }
+
+  .pizza__sort {
+    padding: 0;
+    font-family: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    transition: color var(--motion-fast) ease;
+  }
+
+  .pizza__sort[aria-pressed='true'] {
+    color: var(--color-black);
+  }
+
+  .pizza__sort-icon {
+    display: block;
+    transition: transform var(--motion-base) var(--ease-out);
+  }
+
+  .pizza__sort[data-direction='desc'] .pizza__sort-icon {
+    transform: rotate(180deg);
+  }
+
+  .pizza__sort:focus-visible,
+  .pizza__toggle:focus-visible,
+  .pizza__row a:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  .pizza__rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pizza__row {
+    position: relative;
+    padding-block: var(--space-lg);
+    border-bottom: 1px solid var(--color-gray-200);
+    transition:
+      background-color var(--motion-fast) ease,
+      color var(--motion-fast) ease;
+  }
+
+  .pizza__row[data-expandable='true'] {
+    cursor: pointer;
+  }
+
+  .pizza__row[data-open='true'] {
+    color: var(--color-white);
+    background: var(--color-blue);
+  }
+
+  .pizza__row a {
+    color: inherit;
+  }
+
+  /* The pink dot slides in before the name on hover and while open */
+  .pizza__name {
+    display: flex;
+    align-items: center;
+  }
+
+  .pizza__name::before {
+    content: '';
+    flex-shrink: 0;
+    width: 0;
+    height: 6px;
+    margin-right: 0;
+    border-radius: 50%;
+    background: var(--color-pink);
+    transition:
+      width var(--motion-base) var(--ease-out),
+      margin-right var(--motion-base) var(--ease-out);
+  }
+
+  /* The open row's dot pulses softly */
+  .pizza__row[data-open='true'] .pizza__name::before {
+    width: 6px;
+    margin-right: var(--space-lg);
+    animation: pizza-dot-blink 1.4s ease-in-out var(--motion-base) infinite;
+  }
+
+  @keyframes pizza-dot-blink {
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pizza__row[data-open='true'] .pizza__name::before {
+      animation: none;
+    }
+  }
+
+  .pizza__country-code {
+    text-decoration: none;
+  }
+
+  .pizza__go {
+    font-weight: var(--body-md-weight-semibold);
+    text-decoration: none;
+  }
+
+  .pizza__go-arrow {
+    display: inline-block;
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition:
+      opacity var(--motion-fast) ease,
+      transform var(--motion-base) var(--ease-out);
+  }
+
+  /* Details: animates open from zero height (grid 0fr → 1fr) */
+  .pizza__details {
+    display: grid;
+    grid-template-rows: 0fr;
+    grid-column: 1 / -1;
+    transition: grid-template-rows var(--motion-base) var(--ease-out);
+  }
+
+  .pizza__row[data-open='true'] .pizza__details {
+    grid-template-rows: 1fr;
+  }
+
+  .pizza__details-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-lg);
+    min-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity var(--motion-fast) ease;
+  }
+
+  /* Empty first item: with the gap it puts 24px above the address, and
+     unlike padding it collapses to nothing when closed */
+  .pizza__details-inner::before {
+    content: '';
+  }
+
+  .pizza__row[data-open='true'] .pizza__details-inner {
+    opacity: 1;
+    transition-delay: 100ms;
+  }
+
+  /* Label and value side by side ("Phone  255 723 312"). Linked values get the
+     site's hover underline (desktop only), on an inner inline span — the link
+     itself is a flex item, so a block — and clone gives each address line its own. */
+  .pizza__detail {
+    display: flex;
+    gap: var(--space-sm);
+    margin: 0;
+  }
+
+  .pizza__detail a {
+    text-decoration: none;
+  }
+
+  .pizza__detail a > span {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /* Round icon button (Figma Button, 32px). Mobile: always shown, outlined;
+     white once the row is open. Desktop: white, only on hover/open/focus. */
+  .pizza__toggle {
+    position: absolute;
+    top: 14px; /* Figma mobile; desktop centers it in the row */
+    right: var(--space-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: none;
+    border: 1px solid var(--color-black);
+    border-radius: var(--radius-round);
+    cursor: pointer;
+    transition:
+      opacity var(--motion-fast) ease,
+      background-color var(--motion-fast) ease;
+  }
+
+  .pizza__row[data-open='true'] .pizza__toggle {
+    background: var(--color-white);
+    border-color: var(--color-white);
+  }
+
+  .pizza__toggle-icon {
+    display: block;
+    fill: var(--color-black);
+  }
+
+  .pizza__toggle-icon--collapse,
+  .pizza__row[data-open='true'] .pizza__toggle-icon--expand {
+    display: none;
+  }
+
+  .pizza__row[data-open='true'] .pizza__toggle-icon--collapse {
+    display: block;
+  }
+
+  .pizza__empty {
+    margin: 0;
+    padding: var(--space-lg) var(--space-md);
+    color: var(--color-gray-500);
+  }
+
+  @media (min-width: 1024px) {
+    .pizza__grid {
+      grid-template-columns: repeat(3, minmax(0, 376fr)) minmax(0, 200fr);
+      padding-inline: var(--space-xlg);
+    }
+
+    .pizza__grid > .pizza__col--city,
+    .pizza__grid > .pizza__col--location,
+    .pizza__country-full {
+      display: block;
+    }
+
+    /* Headers keep their label + arrow layout */
+    .pizza__grid > .pizza__sort,
+    .pizza__grid > .pizza__head-label {
+      display: flex;
+    }
+
+    .pizza__country-code {
+      display: none;
+    }
+
+    /* The details sit under the city (Figma 188:20037) */
+    .pizza__details {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .pizza__toggle {
+      top: 18px;
+      right: var(--space-xlg);
+      background: var(--color-white);
+      border-color: var(--color-white);
+      opacity: 0;
+    }
+
+    .pizza__row[data-open='true'] .pizza__toggle,
+    .pizza__toggle:focus-visible {
+      opacity: 1;
+    }
+  }
+
+  /* Hover is desktop only (no hover effects on mobile) */
+  @media (min-width: 1024px) and (hover: hover) {
+    .pizza__row:hover {
+      color: var(--color-white);
+      background: var(--color-blue);
+    }
+
+    .pizza__row:hover .pizza__name::before {
+      width: 6px;
+      margin-right: var(--space-lg);
+    }
+
+    .pizza__row:hover .pizza__toggle {
+      opacity: 1;
+    }
+
+    .pizza__go:hover .pizza__go-arrow {
+      opacity: 1;
+      transform: none;
+    }
+
+    .pizza__sort:hover {
+      color: var(--color-black);
+    }
+  }
+</style>
