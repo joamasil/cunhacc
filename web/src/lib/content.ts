@@ -13,6 +13,7 @@ import type {
   GalleryItem,
   InfoBlock,
   PageSeo,
+  PizzaHunts,
   Project,
   ProjectMedia,
   SanityImage,
@@ -290,5 +291,50 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       builtBy: raw.builtByLabel ? { label: raw.builtByLabel, url: raw.builtByUrl ?? undefined } : undefined,
     },
     defaultSeo: mapSeo(raw.seo),
+  };
+}
+
+const PIZZA_HUNTS_QUERY = defineQuery(`*[_type == "pizzaHunts" && _id == "pizzaHunts"][0] {
+  showInMenu,
+  title,
+  places[]{ name, city, country, countryCode, directionsUrl, details[]{ label, value, href } },
+  ${SEO}
+}`);
+
+interface RawPizzaHunts {
+  showInMenu: boolean | null;
+  title: string | null;
+  places:
+    | {
+        name: string;
+        city: string;
+        country: string;
+        countryCode: string | null;
+        directionsUrl: string | null;
+        details: { label: string | null; value: string; href: string | null }[] | null;
+      }[]
+    | null;
+  seo: Partial<RawSeo>;
+}
+
+/** Like the 404, falls back (Figma title, no places) instead of failing the build before it's published. */
+export async function getPizzaHunts(): Promise<PizzaHunts> {
+  const raw = await sanityClient.fetch<RawPizzaHunts | null>(PIZZA_HUNTS_QUERY);
+  const seo = raw?.seo;
+  return {
+    // Only an explicit "off" hides it, so the link shows before the toggle is ever touched
+    showInMenu: raw?.showInMenu !== false,
+    title: raw?.title ?? '(My) to-Dough List ↘',
+    places: (raw?.places ?? []).map((place) => ({
+      name: place.name,
+      city: place.city,
+      country: place.country,
+      countryCode: place.countryCode?.trim() || place.country,
+      directionsUrl: place.directionsUrl ?? undefined,
+      details: (place.details ?? [])
+        .filter((detail) => detail.value?.trim())
+        .map((detail) => ({ label: detail.label?.trim() || undefined, value: detail.value, href: detail.href ?? undefined })),
+    })),
+    seo: seo?.title && seo.description ? mapSeo(seo as RawSeo) : undefined,
   };
 }

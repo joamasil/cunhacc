@@ -1,5 +1,6 @@
 import {about} from './documents/about'
 import {errorPage} from './documents/errorPage'
+import {pizzaHunts} from './documents/pizzaHunts'
 import {project} from './documents/project'
 import {siteSettings} from './documents/siteSettings'
 import {accessibleImage} from './objects/accessibleImage'
@@ -12,6 +13,7 @@ export const schemaTypes = [
   // Documents
   project,
   about,
+  pizzaHunts,
   errorPage,
   siteSettings,
   // Objects
@@ -24,4 +26,4 @@ export const schemaTypes = [
 ]
 
 /** Document types that exist exactly once (fixed IDs, see structure.ts). */
-export const singletonTypes = new Set(['about', 'errorPage', 'siteSettings'])
+export const singletonTypes = new Set(['about', 'pizzaHunts', 'errorPage', 'siteSettings'])

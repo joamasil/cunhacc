@@ -1,6 +1,7 @@
 import { initClock } from './clock';
 import { initLenis } from './lenis';
 import { initNav } from './nav';
+import { initPizzaHunts } from './pizza-hunts';
 import { initProjectPanel } from './project-panel';
 import { initTransitions } from './transitions';
 import { initWorkSlider } from './work-slider';
@@ -10,6 +11,7 @@ import { initYear } from './year';
 function initPage(container: ParentNode): void {
   initWorkSlider(container);
   initProjectPanel(container);
+  initPizzaHunts(container);
   initClock(container);
   initYear(container);
 }
