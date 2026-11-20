@@ -69,6 +69,9 @@ const ERROR_PAGE_QUERY = defineQuery(`*[_type == "errorPage" && _id == "errorPag
 const SITE_SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "siteSettings"][0] {
   figmaUrl,
   contactEmail,
+  copyright,
+  builtByLabel,
+  builtByUrl,
   ${SEO}
 }`);
 
@@ -135,6 +138,9 @@ interface RawErrorPage {
 interface RawSiteSettings {
   figmaUrl: string | null;
   contactEmail: string;
+  copyright: string | null;
+  builtByLabel: string | null;
+  builtByUrl: string | null;
   seo: RawSeo;
 }
 
@@ -279,6 +285,10 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   return {
     figmaUrl: raw.figmaUrl ?? '',
     contactEmail: raw.contactEmail,
+    footer: {
+      copyright: raw.copyright ?? 'Rayane Cunha. All rights reserved.',
+      builtBy: raw.builtByLabel ? { label: raw.builtByLabel, url: raw.builtByUrl ?? undefined } : undefined,
+    },
     defaultSeo: mapSeo(raw.seo),
   };
 }

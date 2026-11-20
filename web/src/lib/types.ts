@@ -107,6 +107,11 @@ export interface ErrorPage {
 export interface SiteSettings {
   figmaUrl: string;
   contactEmail: string;
+  /** Footer credits. The © year is added in Footer.astro and kept current. */
+  footer: {
+    copyright: string;
+    builtBy?: { label: string; url?: string };
+  };
   /** Home page SEO; its OG image is the share image for pages without their own. */
   defaultSeo: PageSeo;
 }
