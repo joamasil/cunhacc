@@ -1,6 +1,6 @@
 import { sanityClient } from 'sanity:client';
 import { defineQuery } from 'groq';
-import { toHTML } from '@portabletext/to-html';
+import { escapeHTML, toHTML } from '@portabletext/to-html';
 import type { PortableTextBlock } from '@portabletext/types';
 import type { SanityImageSource } from '@sanity/image-url';
 import { urlFor } from './sanity/image';
@@ -71,8 +71,7 @@ const SITE_SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "si
   figmaUrl,
   contactEmail,
   copyright,
-  builtByLabel,
-  builtByUrl,
+  credits,
   ${SEO}
 }`);
 
@@ -140,8 +139,7 @@ interface RawSiteSettings {
   figmaUrl: string | null;
   contactEmail: string;
   copyright: string | null;
-  builtByLabel: string | null;
-  builtByUrl: string | null;
+  credits: PortableTextBlock[] | null;
   seo: RawSeo;
 }
 
@@ -173,6 +171,20 @@ function mapSeo(seo: RawSeo): PageSeo {
     description: seo.description,
     ogImage: seo.ogImage && { ...mapImage(seo.ogImage, 1200), url: urlFor(seo.ogImage).width(1200).height(630).url() },
   };
+}
+
+/** Footer credits as inline HTML (no <p>); links open in a new tab. Empty means hidden. */
+function mapCredits(blocks: PortableTextBlock[]): string | undefined {
+  const html = toHTML(blocks, {
+    components: {
+      block: { normal: ({ children }) => children ?? '' },
+      marks: {
+        link: ({ children, value }) =>
+          `<a class="hover-underline" href="${escapeHTML(value?.href ?? '')}" target="_blank" rel="noopener noreferrer">${children}</a>`,
+      },
+    },
+  }).trim();
+  return html || undefined;
 }
 
 /** Splits the description at its "Read more" break: `intro` shows straight away, `more` opens on click. */
@@ -288,7 +300,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     contactEmail: raw.contactEmail,
     footer: {
       copyright: raw.copyright ?? 'Rayane Cunha. All rights reserved.',
-      builtBy: raw.builtByLabel ? { label: raw.builtByLabel, url: raw.builtByUrl ?? undefined } : undefined,
+      credits: mapCredits(raw.credits ?? []),
     },
     defaultSeo: mapSeo(raw.seo),
   };

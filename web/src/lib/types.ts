@@ -110,7 +110,8 @@ export interface SiteSettings {
   /** Footer credits. The © year is added in Footer.astro and kept current. */
   footer: {
     copyright: string;
-    builtBy?: { label: string; url?: string };
+    /** Inline HTML; may contain links. */
+    credits?: string;
   };
   /** Home page SEO; its OG image is the share image for pages without their own. */
   defaultSeo: PageSeo;
