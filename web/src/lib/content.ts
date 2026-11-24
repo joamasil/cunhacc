@@ -1,6 +1,6 @@
 import { sanityClient } from 'sanity:client';
 import { defineQuery } from 'groq';
-import { toHTML } from '@portabletext/to-html';
+import { escapeHTML, toHTML } from '@portabletext/to-html';
 import type { PortableTextBlock } from '@portabletext/types';
 import type { SanityImageSource } from '@sanity/image-url';
 import { urlFor } from './sanity/image';
@@ -13,6 +13,7 @@ import type {
   GalleryItem,
   InfoBlock,
   PageSeo,
+  PizzaHunts,
   Project,
   ProjectMedia,
   SanityImage,
@@ -69,6 +70,8 @@ const ERROR_PAGE_QUERY = defineQuery(`*[_type == "errorPage" && _id == "errorPag
 const SITE_SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "siteSettings"][0] {
   figmaUrl,
   contactEmail,
+  copyright,
+  credits,
   ${SEO}
 }`);
 
@@ -135,6 +138,8 @@ interface RawErrorPage {
 interface RawSiteSettings {
   figmaUrl: string | null;
   contactEmail: string;
+  copyright: string | null;
+  credits: PortableTextBlock[] | null;
   seo: RawSeo;
 }
 
@@ -166,6 +171,20 @@ function mapSeo(seo: RawSeo): PageSeo {
     description: seo.description,
     ogImage: seo.ogImage && { ...mapImage(seo.ogImage, 1200), url: urlFor(seo.ogImage).width(1200).height(630).url() },
   };
+}
+
+/** Footer credits as inline HTML (no <p>); links open in a new tab. Empty means hidden. */
+function mapCredits(blocks: PortableTextBlock[]): string | undefined {
+  const html = toHTML(blocks, {
+    components: {
+      block: { normal: ({ children }) => children ?? '' },
+      marks: {
+        link: ({ children, value }) =>
+          `<a class="hover-underline" href="${escapeHTML(value?.href ?? '')}" target="_blank" rel="noopener noreferrer">${children}</a>`,
+      },
+    },
+  }).trim();
+  return html || undefined;
 }
 
 /** Splits the description at its "Read more" break: `intro` shows straight away, `more` opens on click. */
@@ -279,6 +298,55 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   return {
     figmaUrl: raw.figmaUrl ?? '',
     contactEmail: raw.contactEmail,
+    footer: {
+      copyright: raw.copyright ?? 'Rayane Cunha. All rights reserved.',
+      credits: mapCredits(raw.credits ?? []),
+    },
     defaultSeo: mapSeo(raw.seo),
+  };
+}
+
+const PIZZA_HUNTS_QUERY = defineQuery(`*[_type == "pizzaHunts" && _id == "pizzaHunts"][0] {
+  showInMenu,
+  title,
+  places[]{ name, city, country, countryCode, directionsUrl, details[]{ label, value, href } },
+  ${SEO}
+}`);
+
+interface RawPizzaHunts {
+  showInMenu: boolean | null;
+  title: string | null;
+  places:
+    | {
+        name: string;
+        city: string;
+        country: string;
+        countryCode: string | null;
+        directionsUrl: string | null;
+        details: { label: string | null; value: string; href: string | null }[] | null;
+      }[]
+    | null;
+  seo: Partial<RawSeo>;
+}
+
+/** Like the 404, falls back (Figma title, no places) instead of failing the build before it's published. */
+export async function getPizzaHunts(): Promise<PizzaHunts> {
+  const raw = await sanityClient.fetch<RawPizzaHunts | null>(PIZZA_HUNTS_QUERY);
+  const seo = raw?.seo;
+  return {
+    // Only an explicit "off" hides it, so the link shows before the toggle is ever touched
+    showInMenu: raw?.showInMenu !== false,
+    title: raw?.title ?? '(My) to-Dough List ↘',
+    places: (raw?.places ?? []).map((place) => ({
+      name: place.name,
+      city: place.city,
+      country: place.country,
+      countryCode: place.countryCode?.trim() || place.country,
+      directionsUrl: place.directionsUrl ?? undefined,
+      details: (place.details ?? [])
+        .filter((detail) => detail.value?.trim())
+        .map((detail) => ({ label: detail.label?.trim() || undefined, value: detail.value, href: detail.href ?? undefined })),
+    })),
+    seo: seo?.title && seo.description ? mapSeo(seo as RawSeo) : undefined,
   };
 }

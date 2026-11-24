@@ -107,6 +107,41 @@ export interface ErrorPage {
 export interface SiteSettings {
   figmaUrl: string;
   contactEmail: string;
+  /** Footer credits. The © year is added in Footer.astro and kept current. */
+  footer: {
+    copyright: string;
+    /** Inline HTML; may contain links. */
+    credits?: string;
+  };
   /** Home page SEO; its OG image is the share image for pages without their own. */
   defaultSeo: PageSeo;
+}
+
+/** A row in an opened pizza place: optional label ("Phone"), value, optional link. */
+export interface PizzaDetail {
+  label?: string;
+  /** Line breaks ("\n") render as separate lines. */
+  value: string;
+  href?: string;
+}
+
+export interface Pizzeria {
+  name: string;
+  city: string;
+  country: string;
+  /** Shown instead of the country on mobile; falls back to the country */
+  countryCode: string;
+  /** "Go to" link; hidden when empty */
+  directionsUrl?: string;
+  /** Shown when the row opens; the row doesn't open when empty */
+  details: PizzaDetail[];
+}
+
+export interface PizzaHunts {
+  /** Studio toggle: false drops the link from the menu (the page stays live) */
+  showInMenu: boolean;
+  title: string;
+  places: Pizzeria[];
+  /** Missing until the page's SEO is filled in; the page falls back to the site default */
+  seo?: PageSeo;
 }

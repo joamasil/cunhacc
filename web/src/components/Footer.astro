@@ -1,6 +1,8 @@
 ---
+import { getSiteSettings } from '../lib/content';
+
 /**
- * Page footer: copyright left, dev credit right. On every page except the home slider.
+ * Page footer: copyright left, credits right. On every page except the home slider.
  * `fixed` pins it to the bottom of the screen, for pages that don't scroll (project, 404).
  */
 interface Props {
@@ -10,12 +12,11 @@ interface Props {
 const { fixed = false, class: className } = Astro.props;
 // Build-time year; scripts/year.ts updates it in the browser
 const year = new Date().getFullYear();
+const { footer } = await getSiteSettings();
 ---
 <footer class:list={['site-footer', fixed && 'site-footer--fixed', className]}>
-  <p class="site-footer__text">© <span data-year>{year}</span> Rayane Cunha. All rights reserved.</p>
-  <p class="site-footer__text">
-    Built by <a class="hover-underline" href="https://joana.dev" target="_blank" rel="noopener noreferrer">joana.dev</a>
-  </p>
+  <p class="site-footer__text">© <span data-year>{year}</span> {footer.copyright}</p>
+  {footer.credits && <p class="site-footer__text" set:html={footer.credits} />}
 </footer>
 
 <style>
@@ -50,7 +51,8 @@ const year = new Date().getFullYear();
     margin: 0;
   }
 
-  .site-footer a {
+  /* :global because the credits links come in via set:html, which scoped styles don't reach */
+  .site-footer :global(a) {
     color: inherit;
   }
 </style>

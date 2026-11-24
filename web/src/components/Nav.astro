@@ -1,8 +1,9 @@
 ---
-import { getProjects, getSiteSettings } from '../lib/content';
+import { getPizzaHunts, getProjects, getSiteSettings } from '../lib/content';
 import menuIcon from '../assets/icons/menu.svg?url';
 import closeIcon from '../assets/icons/close.svg?url';
 import chevronIcon from '../assets/icons/chevron-down.svg?url';
+import searchIcon from '../assets/icons/search.svg?url';
 
 /**
  * Bottom bar: the "Menu" pill plus, on Work pages (home + project pages), the
@@ -11,15 +12,18 @@ import chevronIcon from '../assets/icons/chevron-down.svg?url';
  */
 const { figmaUrl, contactEmail } = await getSiteSettings();
 const projects = await getProjects();
+const { showInMenu: showPizzaHunts } = await getPizzaHunts();
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const activeSlug = path.startsWith('/work/') ? path.slice('/work/'.length) : projects[0]?.slug;
 const showStrip = path === '/' || path.startsWith('/work/');
+const showSearch = path === '/pizza-hunts';
 const links = [
   { label: 'Work', href: '/' },
   { label: 'About', href: '/about' },
   // Hidden when Site settings has no Figma URL
   ...(figmaUrl ? [{ label: 'Figma', href: figmaUrl, external: true }] : []),
-  // Hidden until the page is ready: { label: 'Pizza hunts', href: '/pizza-hunts' },
+  // Hidden when "Show in menu" is off on the Pizza hunts page in Sanity
+  ...(showPizzaHunts ? [{ label: 'Pizza hunts', href: '/pizza-hunts' }] : []),
   { label: 'Contact', href: `mailto:${contactEmail}` },
 ];
 ---
@@ -29,8 +33,33 @@ const links = [
   data-open="false"
   data-projects-open="false"
   data-strip={String(showStrip)}
+  data-search={String(showSearch)}
+  data-searching="false"
   aria-label="Main"
 >
+  <!-- Pizza hunts only. Desktop (Figma 202:20341): Default, Hover (pink), Typing (pink outline),
+       Filled (pink text, × clears). Mobile (204:31800): Typing grows into a panel of suggestions
+       above the field, replacing the Menu pill; Clean shows the query with ×. Filters as you type. -->
+  <form class="site-nav__search" role="search" data-nav-search data-filled="false">
+    <ul class="site-nav__suggestions" aria-label="Suggestions" data-nav-suggestions></ul>
+    <div class="site-nav__search-field">
+      <label class="visually-hidden" for="nav-search-input">Search pizzerias</label>
+      <input
+        id="nav-search-input"
+        class="site-nav__search-input"
+        type="search"
+        placeholder="Pizza, country or city"
+        autocomplete="off"
+        spellcheck="false"
+        data-nav-search-input
+      />
+      <img class="site-nav__icon site-nav__search-icon" src={searchIcon} width="20" height="20" alt="" />
+      <button class="site-nav__search-clear" type="button" aria-label="Clear search" data-nav-search-clear>
+        <img class="site-nav__icon" src={closeIcon} width="20" height="20" alt="" />
+      </button>
+    </div>
+  </form>
+
   <div class="site-nav__main" data-nav-main>
     <button class="site-nav__toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="nav-menu">
       Menu
@@ -116,7 +145,8 @@ const links = [
     color: var(--color-black);
   }
 
-  /* Both pills share the frosted surface */
+  /* All pills share the frosted surface */
+  .site-nav__search,
   .site-nav__main,
   .site-nav__strip {
     padding: var(--space-xsm);
@@ -198,6 +228,132 @@ const links = [
     outline: 2px solid var(--color-black);
     outline-offset: -2px;
   }
+
+  /* Search — Pizza hunts only. Hidden while the menu is open. */
+  .site-nav__search {
+    display: none;
+    flex-direction: column;
+    transition:
+      background-color var(--motion-fast) ease,
+      box-shadow var(--motion-fast) ease;
+  }
+
+  .site-nav[data-search='true'][data-open='false'] .site-nav__search {
+    display: flex;
+  }
+
+  /* Mobile/tablet: a 358px bar (Figma Mobile-Full-Navbar), narrower on
+     small phones; the search takes the spare width beside Menu */
+  .site-nav[data-search='true'][data-open='false'] {
+    width: min(358px, 100% - 2 * var(--grid-margin));
+  }
+
+  .site-nav[data-search='true'][data-open='false'] .site-nav__search {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .site-nav__search-field {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xsm);
+    border-radius: var(--radius-md);
+    transition: box-shadow var(--motion-fast) ease;
+  }
+
+  /* Suggestions only show in the mobile Typing panel */
+  .site-nav__suggestions {
+    display: none;
+    flex-direction: column;
+    gap: var(--space-xsm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* :global because scripts/nav.ts creates the suggestions, so they miss the scoped attribute */
+  .site-nav__suggestions :global(li) {
+    display: block;
+  }
+
+  .site-nav__suggestions :global(.site-nav__suggestion) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 40px;
+    padding: 6px var(--space-lg);
+    font: inherit;
+    color: inherit;
+    background: rgb(255 255 255 / 0.24);
+    border: 0;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+  }
+
+  .site-nav__suggestions :global(.site-nav__suggestion:focus-visible) {
+    outline: 2px solid var(--color-black);
+    outline-offset: -2px;
+  }
+
+  .site-nav__search-icon,
+  .site-nav__search-clear {
+    margin-right: 12px;
+  }
+
+  .site-nav__search-clear {
+    display: none;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+
+  .site-nav__search-clear:focus-visible {
+    outline: 2px solid var(--color-black);
+    outline-offset: 2px;
+  }
+
+  /* Typing: pink outline (inset, so the pill doesn't grow) */
+  .site-nav__search:has(.site-nav__search-input:focus) {
+    box-shadow: inset 0 0 0 1px var(--color-pink);
+  }
+
+  /* Filled/Clean (a query, not typing): the search icon becomes ×.
+     The text turns pink on desktop only (see the desktop block). */
+  .site-nav__search[data-filled='true']:not(:has(.site-nav__search-input:focus)) .site-nav__search-icon {
+    display: none;
+  }
+
+  .site-nav__search[data-filled='true']:not(:has(.site-nav__search-input:focus)) .site-nav__search-clear {
+    display: block;
+  }
+
+  .site-nav__search-input {
+    flex: 1;
+    min-width: 0;
+    height: 32px;
+    padding: 6px 0 6px 12px;
+    font: inherit;
+    color: var(--color-black);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-sm);
+    outline: none;
+    appearance: none;
+  }
+
+  .site-nav__search-input::placeholder {
+    color: var(--color-gray-500);
+    opacity: 1;
+  }
+
+  /* The pill's own clear button would crowd the search icon */
+  .site-nav__search-input::-webkit-search-cancel-button {
+    appearance: none;
+  }
+
 
   /* Project strip — Work pages only. A thumbnail row on desktop, an
      "All projects" dropdown on mobile (see the mobile block below). */
@@ -288,10 +444,9 @@ const links = [
   }
 
   /* Mobile open: full-width panel growing upward, stacked links, "Menu ×" at the bottom */
+  /* Capped at the Figma panel width (358px) and centered, so tablets get a panel, not a full-width sheet */
   .site-nav[data-open='true'] {
-    left: var(--grid-margin);
-    right: var(--grid-margin);
-    transform: none;
+    width: min(358px, 100% - 2 * var(--grid-margin));
   }
 
   .site-nav[data-open='true'] .site-nav__main {
@@ -325,6 +480,34 @@ const links = [
   /* Mobile "All projects" dropdown (Figma 178:27564). Opening either panel
      hides the other pill; scripts/nav.ts slides it out to the side first. */
   @media (max-width: 1023px) {
+    /* Search Typing (Figma 207:38918): the pill becomes a panel — suggestions
+       above an outlined field — and the Menu pill steps aside (scripts/nav.ts) */
+    .site-nav[data-searching='true'] .site-nav__main {
+      display: none;
+    }
+
+    .site-nav[data-searching='true'] .site-nav__search {
+      gap: var(--space-md);
+      padding: var(--space-md) var(--space-md) var(--space-sm);
+    }
+
+    .site-nav[data-searching='true'] .site-nav__suggestions:not(:empty) {
+      display: flex;
+    }
+
+    .site-nav[data-searching='true'] .site-nav__search-field {
+      background: var(--surface-glass);
+    }
+
+    /* The outline sits on the field here, not the whole panel */
+    .site-nav[data-searching='true'] .site-nav__search:has(.site-nav__search-input:focus) {
+      box-shadow: none;
+    }
+
+    .site-nav[data-searching='true'] .site-nav__search-field:has(.site-nav__search-input:focus) {
+      box-shadow: inset 0 0 0 1px var(--color-pink);
+    }
+
     .site-nav[data-open='true'] .site-nav__strip,
     .site-nav[data-projects-open='true'] .site-nav__main {
       display: none;
@@ -335,9 +518,7 @@ const links = [
     }
 
     .site-nav[data-projects-open='true'] {
-      left: var(--grid-margin);
-      right: var(--grid-margin);
-      transform: none;
+      width: min(358px, 100% - 2 * var(--grid-margin));
     }
 
     .site-nav[data-projects-open='true'] .site-nav__strip {
@@ -391,6 +572,25 @@ const links = [
       min-height: 40px;
     }
 
+    /* Desktop: a fixed-width pill (278px inside); the bar sizes to its pills */
+    .site-nav[data-search='true'][data-open='false'] {
+      width: auto;
+    }
+
+    /* Filled: pink text */
+    .site-nav__search[data-filled='true']:not(:has(.site-nav__search-input:focus)) .site-nav__search-input {
+      color: var(--color-pink);
+    }
+
+    .site-nav[data-search='true'][data-open='false'] .site-nav__search {
+      flex: none;
+      width: 286px;
+    }
+
+    .site-nav__search-input {
+      height: 40px;
+    }
+
     /* Keeps "Menu" anchored left while the pill shrinks back from the link row */
     .site-nav__main {
       align-items: flex-start;
@@ -402,9 +602,7 @@ const links = [
 
     /* Desktop open: the pill becomes a single row of links, still centered */
     .site-nav[data-open='true'] {
-      left: 50%;
-      right: auto;
-      transform: translateX(-50%);
+      width: auto;
     }
 
     .site-nav[data-open='true'] .site-nav__main {
@@ -441,6 +639,16 @@ const links = [
 
   /* Hover is desktop only; on mobile just the current page is marked */
   @media (min-width: 1024px) and (hover: hover) {
+    /* Search hover: pink pill, black placeholder (not while typing) */
+    .site-nav__search:hover:not(:has(.site-nav__search-input:focus)) {
+      background: var(--color-pink);
+    }
+
+    .site-nav__search:hover:not(:has(.site-nav__search-input:focus)) .site-nav__search-input::placeholder,
+    .site-nav__search:hover:not(:has(.site-nav__search-input:focus)) .site-nav__search-input {
+      color: var(--color-black);
+    }
+
     .site-nav[data-open='true'] .site-nav__link:not([aria-current='page']):hover {
       background: var(--color-pink);
     }

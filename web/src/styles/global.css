@@ -25,6 +25,36 @@ body.theme-blue {
   background: var(--color-blue);
 }
 
+body.theme-gray {
+  background: var(--color-gray-50);
+}
+
+/* Pages with an in-flow footer fill at least the screen, so the credits sit
+   at the bottom alongside the nav on short pages, and at the end of the
+   scroll on long ones. (Fixed footers — project, 404 — are already pinned.) */
+[data-barba='container']:has(> .site-footer:not(.site-footer--fixed)) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+[data-barba='container'] > .site-footer:not(.site-footer--fixed) {
+  margin-top: auto;
+}
+
+/* Mobile/tablet: the credits wrap and would hide under the nav, so the page
+   scrolls a little further and they end up resting just above it */
+@media (max-width: 1023px) {
+  [data-barba='container'] > .site-footer:not(.site-footer--fixed) {
+    padding-bottom: calc(var(--nav-bottom) + var(--nav-height) + var(--space-md));
+  }
+}
+
+/* Footer.astro defaults to the on-dark text colour */
+body.theme-gray .site-footer {
+  color: var(--text-muted-on-light);
+}
+
 body.theme-error {
   color: var(--color-white);
   background: var(--color-pink);

@@ -1,4 +1,5 @@
 import { motion, settled } from './motion';
+import { SEARCH_EVENT, suggestions } from './pizza-hunts';
 
 /*
  * The bottom bar persists across Barba transitions, so this module is
@@ -12,16 +13,21 @@ let toggle: HTMLButtonElement | null = null;
 let menu: HTMLElement | null = null;
 let strip: HTMLElement | null = null;
 let projectsToggle: HTMLButtonElement | null = null;
+let search: HTMLFormElement | null = null;
+let searchInput: HTMLInputElement | null = null;
+let suggestionList: HTMLElement | null = null;
 let running: Animation[] = [];
 let ghosts: HTMLElement[] = [];
 let generation = 0;
 
 const isOpen = () => menu?.getAttribute('data-open') === 'true';
 const isProjectsOpen = () => nav?.dataset.projectsOpen === 'true';
+const isSearching = () => nav?.dataset.searching === 'true';
 const thumbItems = () => Array.from(strip?.querySelectorAll<HTMLElement>('[data-thumb-item]') ?? []);
 const links = () => Array.from(menu?.querySelectorAll<HTMLElement>('[data-nav-link]') ?? []);
 const normalizePath = (path: string) => path.replace(/\/$/, '') || '/';
 const stripShown = () => !!strip && getComputedStyle(strip).display !== 'none';
+const searchShown = () => !!search && getComputedStyle(search).display !== 'none';
 // The open/close choreography is desktop only; the mobile panel just switches
 const animatesBar = () => window.matchMedia('(min-width: 1024px)').matches;
 
@@ -83,6 +89,14 @@ async function animateBar(open: boolean): Promise<void> {
   const items = stripShown() ? thumbItems() : [];
   const active = items.find((item) => item.dataset.active === 'true');
   const others = items.filter((item) => item !== active);
+
+  // The search pill (Pizza hunts) makes way for the open menu
+  if (open && search && searchShown()) {
+    const out = search.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fast, easing: 'ease-out', fill: 'forwards' });
+    running.push(out);
+    await settled([out]);
+    if (run !== generation) return;
+  }
 
   if (!open) {
     const out = links().map((link) =>
@@ -184,6 +198,9 @@ async function animateBar(open: boolean): Promise<void> {
       );
     });
     if (toggle) running.push(toggle.animate([{ opacity: 0 }, { opacity: 1 }], { duration: base, easing: easeOut }));
+    if (search && searchShown()) {
+      running.push(search.animate([{ opacity: 0 }, { opacity: 1 }], { duration: base, delay: fast, easing: easeOut, fill: 'backwards' }));
+    }
   }
 
   await settled(running);
@@ -293,7 +310,11 @@ async function switchPanel(
 
 export function setNavOpen(open: boolean): Promise<void> {
   if (!nav || isOpen() === open) return Promise.resolve();
-  if (!animatesBar()) return switchPanel(applyOpen, main, strip, 1, open);
+  if (!animatesBar()) {
+    // The search pill sits left of Menu, so it leaves to the left
+    const searching = nav.dataset.search === 'true';
+    return switchPanel(applyOpen, main, searching ? search : strip, searching ? -1 : 1, open);
+  }
   return animateBar(open);
 }
 
@@ -304,7 +325,8 @@ export function setProjectsOpen(open: boolean): Promise<void> {
 }
 
 export async function closeNav(): Promise<void> {
-  await Promise.all([setNavOpen(false), setProjectsOpen(false)]);
+  searchInput?.blur();
+  await Promise.all([setNavOpen(false), setProjectsOpen(false), setSearching(false)]);
 }
 
 /** Marks the project at `index` as current in the strip. */
@@ -328,33 +350,89 @@ const isWorkPath = (path: string) => {
   return normalized === '/' || normalized.startsWith('/work/');
 };
 
+const isSearchPath = (path: string) => normalizePath(path) === '/pizza-hunts';
+
+/** Rebuilds the mobile panel's suggestion buttons for the current query */
+function renderSuggestions(value: string): void {
+  if (!suggestionList) return;
+  suggestionList.replaceChildren(
+    ...suggestions(value).map((text) => {
+      const item = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'site-nav__suggestion';
+      button.textContent = text;
+      button.dataset.suggestion = text;
+      item.append(button);
+      return item;
+    }),
+  );
+}
+
+/** Tells the page the query changed and flags the pill as Filled (Figma state) */
+function emitSearch(): void {
+  const value = searchInput?.value ?? '';
+  search?.setAttribute('data-filled', String(value.trim() !== ''));
+  renderSuggestions(value);
+  document.dispatchEvent(new CustomEvent(SEARCH_EVENT, { detail: value }));
+}
+
+function applySearching(open: boolean): void {
+  nav?.setAttribute('data-searching', String(open));
+}
+
 /**
- * Shows/hides the project strip for the page at `path`. The bar is centered,
- * so toggling the strip re-centers the Menu pill; slide it there (FLIP) and
- * fade the strip instead of letting it jump.
+ * Mobile search panel (Figma 207:38918): while typing, the search pill grows
+ * into a panel of suggestions and the Menu pill slides off to the right.
+ * Desktop just outlines the field, so it has no panel.
+ */
+function setSearching(open: boolean): Promise<void> {
+  if (!nav || isSearching() === open || (open && animatesBar())) return Promise.resolve();
+  return switchPanel(applySearching, search, main, 1, open);
+}
+
+function clearSearch(): void {
+  if (!searchInput?.value) return;
+  searchInput.value = '';
+  emitSearch();
+}
+
+/**
+ * Shows/hides the project strip (Work pages) and the search pill (Pizza hunts)
+ * for the page at `path`. The bar is centered, so either one re-centers the
+ * Menu pill; slide it there (FLIP) and fade the pills instead of letting them jump.
  */
 export async function transitionStrip(path: string): Promise<void> {
   if (!nav || !main || !strip) return;
   const show = isWorkPath(path);
-  if (nav.dataset.strip === String(show)) return;
+  const showSearch = isSearchPath(path);
+  if (nav.dataset.strip === String(show) && nav.dataset.search === String(showSearch)) return;
   const run = ++generation;
   const { fast, slow, easeOut } = motion();
 
-  if (!show && stripShown()) {
-    const out = strip.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fast, easing: 'ease-out', fill: 'forwards' });
-    running.push(out);
-    await settled([out]);
+  const leaving = [...(!show && stripShown() ? [strip] : []), ...(!showSearch && search && searchShown() ? [search] : [])];
+  if (leaving.length) {
+    const out = leaving.map((pill) => pill.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fast, easing: 'ease-out', fill: 'forwards' }));
+    running.push(...out);
+    await settled(out);
     if (run !== generation) return;
   }
 
+  const hadSearch = nav.dataset.search === 'true';
   const first = main.getBoundingClientRect();
   clearMotion();
   nav.setAttribute('data-strip', String(show));
+  nav.setAttribute('data-search', String(showSearch));
+  if (!showSearch) clearSearch();
   const last = main.getBoundingClientRect();
   const dx = first.left - last.left;
-  if (!dx) return;
 
   const timing: KeyframeAnimationOptions = { duration: slow, easing: easeOut };
+  if (showSearch && !hadSearch && search && searchShown()) {
+    running.push(search.animate([{ opacity: 0 }, { opacity: 1 }], timing));
+  }
+  if (!dx) return;
+
   running.push(main.animate([{ transform: `translateX(${dx}px)` }, { transform: 'none' }], timing));
   if (show && stripShown()) {
     // Slides out from behind the Menu pill
@@ -374,7 +452,9 @@ export async function transitionStrip(path: string): Promise<void> {
 export function syncNav(path: string): void {
   if (!nav) return;
   const normalized = normalizePath(path);
-  if (nav.dataset.strip !== String(isWorkPath(path))) void transitionStrip(path);
+  if (nav.dataset.strip !== String(isWorkPath(path)) || nav.dataset.search !== String(isSearchPath(path))) {
+    void transitionStrip(path);
+  }
 
   menu?.querySelectorAll<HTMLAnchorElement>('a[data-nav-link]').forEach((link) => {
     const url = new URL(link.href, location.href);
@@ -400,7 +480,40 @@ export function initNav(root: ParentNode = document): void {
   menu = root.querySelector<HTMLElement>('[data-nav-menu]');
   strip = root.querySelector<HTMLElement>('[data-nav-strip]');
   projectsToggle = root.querySelector<HTMLButtonElement>('[data-projects-toggle]');
+  search = root.querySelector<HTMLFormElement>('[data-nav-search]');
+  searchInput = root.querySelector<HTMLInputElement>('[data-nav-search-input]');
   if (!nav || !toggle || !menu) return;
+
+  // Pizza hunts filters as you type; Enter just closes the keyboard
+  searchInput?.addEventListener('input', emitSearch);
+  searchInput?.addEventListener('focus', () => void setSearching(true));
+  // Close the panel once focus has left the search entirely
+  search?.addEventListener('focusout', () => {
+    requestAnimationFrame(() => {
+      if (!search?.contains(document.activeElement)) void setSearching(false);
+    });
+  });
+  // Suggestions: keep focus in the field while tapping, then fill it in and close
+  suggestionList = root.querySelector<HTMLElement>('[data-nav-suggestions]');
+  suggestionList?.addEventListener('pointerdown', (event) => {
+    if ((event.target as Element | null)?.closest('[data-suggestion]')) event.preventDefault();
+  });
+  suggestionList?.addEventListener('click', (event) => {
+    const button = (event.target as Element | null)?.closest<HTMLElement>('[data-suggestion]');
+    if (!button || !searchInput) return;
+    searchInput.value = button.dataset.suggestion ?? '';
+    emitSearch();
+    searchInput.blur();
+  });
+  // The × (Filled state) clears and goes back to typing
+  root.querySelector('[data-nav-search-clear]')?.addEventListener('click', () => {
+    clearSearch();
+    searchInput?.focus();
+  });
+  search?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    searchInput?.blur();
+  });
 
   projectsToggle?.addEventListener('click', () => void setProjectsOpen(!isProjectsOpen()));
 
@@ -418,6 +531,10 @@ export function initNav(root: ParentNode = document): void {
 
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
+    if (event.target === searchInput) {
+      clearSearch();
+      return;
+    }
     if (isOpen()) {
       void setNavOpen(false);
       toggle?.focus();

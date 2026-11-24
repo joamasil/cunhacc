@@ -2,6 +2,7 @@ import type {StructureResolver} from 'sanity/structure'
 import {orderableDocumentListDeskItem} from '@sanity/orderable-document-list'
 import {CogIcon} from '@sanity/icons/Cog'
 import {ErrorScreenIcon} from '@sanity/icons/ErrorScreen'
+import {PizzaIcon} from './schemaTypes/icons/PizzaIcon'
 import {SparklesIcon} from '@sanity/icons/Sparkles'
 import {UserIcon} from '@sanity/icons/User'
 
@@ -16,6 +17,10 @@ export const structure: StructureResolver = (S, context) =>
         .title('About')
         .icon(UserIcon)
         .child(S.document().schemaType('about').documentId('about').title('About')),
+      S.listItem()
+        .title('Pizza hunts')
+        .icon(PizzaIcon)
+        .child(S.document().schemaType('pizzaHunts').documentId('pizzaHunts').title('Pizza hunts')),
       S.listItem()
         .title('Error page')
         .icon(ErrorScreenIcon)
